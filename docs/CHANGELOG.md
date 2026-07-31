@@ -5,6 +5,12 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **Camelot pushed to GitHub** (`github.com/imachickenface/camelot`) and
+  `.github/workflows/claude.yml` added, enabling `@claude` mentions on issues/PRs
+  to trigger Claude Code via GitHub Actions. Requires the owner to install the
+  Claude GitHub App and add an `ANTHROPIC_API_KEY` repo secret before it's live.
+
 ### Fixed
 - **Laggy background-video scrubbing in the Forge hero.** Two-part fix:
   1. *Code* — the mouse handler was setting `video.currentTime` on every

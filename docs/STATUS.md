@@ -92,7 +92,17 @@ project's memory between sessions. Dates are `YYYY-MM-DD`.
 
 ## 🚧 In progress
 
-- _(nothing in progress — awaiting the owner's go-ahead on the next phase)_
+- **2026-07-30 — Camelot is now on GitHub with the Claude GitHub App wired up.**
+  - Initialized git locally and pushed to `https://github.com/imachickenface/camelot`
+    (branch `master`). Local git identity is set repo-locally (not global).
+  - Added `.github/workflows/claude.yml` (from the official
+    `anthropics/claude-code-action` template) so commenting `@claude` on an issue
+    or PR triggers Claude Code via GitHub Actions.
+  - Still needed from the owner (not done by the assistant — requires GitHub
+    login and an API key): install the Claude GitHub App at
+    `github.com/apps/claude` on the repo, and add an `ANTHROPIC_API_KEY` repo
+    secret under Settings → Secrets and variables → Actions. Until both are
+    done, `@claude` mentions on the repo won't do anything yet.
 
 ---
 
