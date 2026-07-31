@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install motion -w @camelot/web)",
+      "PowerShell(npm run typecheck -w @camelot/web)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}

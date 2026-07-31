@@ -1,0 +1,22 @@
+{
+  "name": "camelot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Camelot — a modular content-creation engine, organized around a medieval Round Table of agents.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names \"server,web\" --prefix-colors \"yellow,cyan\" \"npm run dev --workspace @camelot/server\" \"npm run dev --workspace @camelot/web\"",
+    "build": "npm run build --workspace @camelot/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "start": "npm run start --workspace @camelot/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

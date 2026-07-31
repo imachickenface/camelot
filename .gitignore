@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Local runtime data (saved agents, etc.)
+apps/server/data/agents.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files (secrets / API keys — added when real tools are wired up)
+.env
+.env.*
+!.env.example
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
