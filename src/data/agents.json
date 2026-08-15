@@ -21,7 +21,7 @@
       "portrait": "/assets/portraits/percival.svg",
       "engine": "cloud",
       "occupied": true,
-      "active": true
+      "active": false
     },
     {
       "id": "seat-03",
@@ -33,7 +33,7 @@
       "portrait": "/assets/portraits/miku.svg",
       "engine": "cloud",
       "occupied": true,
-      "active": true
+      "active": false
     },
     {
       "id": "seat-04",
@@ -45,7 +45,7 @@
       "portrait": "/assets/portraits/teto.svg",
       "engine": "cloud",
       "occupied": true,
-      "active": true
+      "active": false
     },
     {
       "id": "seat-05",
@@ -57,7 +57,7 @@
       "portrait": "/assets/portraits/crab.svg",
       "engine": "cloud",
       "occupied": true,
-      "active": true
+      "active": false
     },
     {
       "id": "seat-06",
@@ -69,7 +69,7 @@
       "portrait": "",
       "engine": "cloud",
       "occupied": true,
-      "active": true
+      "active": false
     },
     {
       "id": "seat-07",
@@ -141,7 +141,7 @@
       "portrait": "/assets/portraits/merlin.svg",
       "engine": "cloud",
       "occupied": true,
-      "active": true
+      "active": false
     }
   ]
 }

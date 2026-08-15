@@ -1,9 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 /**
- * The cloud-engine path for Hermes's scriptwriting duties (server/hermes.js is the
- * local alternative — see seat-07's `engine` field) — a scouted idea goes in, a script
- * and a Merlin-ready shot list come out. Also used by Percival for fact-checking.
+ * Cloud-engine (Anthropic) integrations still in active use: Percival's fact-checking
+ * and Crab's visual QA. The scriptwriting path that used to live here (draftScript,
+ * feeding the old video pipeline) was removed when that pipeline was retired — see
+ * the legacy-video-pipeline branch.
  */
 
 let client = null;
@@ -15,73 +16,6 @@ function getClient() {
     client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   }
   return client;
-}
-
-const SCRIPT_TOOL = {
-  name: 'submit_script',
-  description: 'Submit the finished narration script and shot list for a faceless YouTube video.',
-  input_schema: {
-    type: 'object',
-    properties: {
-      script: {
-        type: 'string',
-        description: 'The full narration script, ready to be read aloud as voiceover.',
-      },
-      shotList: {
-        type: 'array',
-        description: 'Beats of the video, each 5-15 seconds, in order.',
-        items: {
-          type: 'object',
-          properties: {
-            beat: { type: 'string', description: 'Short label, e.g. "Hook", "Rising action", "Payoff".' },
-            durationSec: { type: 'number', description: 'Approximate seconds this beat should run, 5-15.' },
-            prompt: {
-              type: 'string',
-              description: 'A vivid visual prompt an AI video generator can render for this beat.',
-            },
-          },
-          required: ['beat', 'durationSec', 'prompt'],
-          additionalProperties: false,
-        },
-      },
-    },
-    required: ['script', 'shotList'],
-    additionalProperties: false,
-  },
-  strict: true,
-};
-
-/**
- * Draft a script + shot list from a scouted idea.
- * @param {string} idea — a title/prompt describing the story to tell
- * @returns {Promise<{ script: string, shotList: object[] }>}
- */
-export async function draftScript(idea) {
-  const anthropic = getClient();
-
-  const message = await anthropic.messages.create({
-    model: 'claude-opus-4-8',
-    max_tokens: 4096,
-    tools: [SCRIPT_TOOL],
-    tool_choice: { type: 'tool', name: 'submit_script' },
-    messages: [
-      {
-        role: 'user',
-        content: `You are standing in for the Round Table's scriptwriting seat, for a faceless YouTube channel. Turn the
-following scouted idea into a short narration script (60-90 seconds spoken aloud) with a strong
-hook in the first line, and break it into a shot list of 5-15 second beats. Each beat needs a
-vivid visual prompt an AI video generator (Kling/Veo/Sora-style) can render.
-
-Idea: ${idea}`,
-      },
-    ],
-  });
-
-  const toolUse = message.content.find((block) => block.type === 'tool_use');
-  if (!toolUse) {
-    throw new Error('No script returned');
-  }
-  return toolUse.input;
 }
 
 const FACT_CHECK_SCHEMA = {

@@ -1,0 +1,43 @@
+{
+  "projects": [
+    {
+      "id": "proj-1755237000000",
+      "slug": "test-trivial-project",
+      "name": "Trivial Hello Test",
+      "idea": { "text": "Verify the manager loop end to end with a one-step trivial task.", "source": "manager" },
+      "status": "complete",
+      "folderPath": "C:\\Users\\super\\Documents\\CamelotProjects\\test-trivial-project",
+      "createdAt": "2026-08-15T06:00:00.000Z",
+      "updatedAt": "2026-08-15T06:11:00.000Z",
+      "completedAt": "2026-08-15T06:11:00.000Z",
+      "ownerNote": null,
+      "plan": {
+        "writtenBy": "manager",
+        "writtenAt": "2026-08-15T06:00:00.000Z",
+        "steps": [
+          {
+            "id": "step-1",
+            "description": "Create hello.txt at the project's absolute path containing exactly 'camelot'.",
+            "status": "complete",
+            "attempts": 2,
+            "hermesOutputSummary": "Created C:\\Users\\super\\Documents\\CamelotProjects\\test-trivial-project\\hello.txt containing exactly \"camelot\" (7 bytes, no trailing newline). Verified on disk.",
+            "reviewNotes": "Correct content, correct location once the prompt spelled out the absolute path. Approved.",
+            "startedAt": "2026-08-15T06:01:00.000Z",
+            "completedAt": "2026-08-15T06:11:00.000Z"
+          }
+        ]
+      },
+      "activityLog": [
+        { "at": "2026-08-15T06:00:00.000Z", "actor": "manager", "type": "plan-written", "note": "1-step trivial plan drafted for verification." },
+        { "at": "2026-08-15T06:01:00.000Z", "actor": "manager", "type": "step-dispatched", "note": "step-1 sent to Hermes via --in <project folder> + shell cd." },
+        { "at": "2026-08-15T06:04:00.000Z", "actor": "hermes", "type": "step-reported", "note": "Reported success, but file actually landed in C:\\Users\\super\\hello.txt (home dir) — --in and shell cd were not respected." },
+        { "at": "2026-08-15T06:05:00.000Z", "actor": "manager", "type": "review", "note": "Rejected: wrong location. Root-caused: --no-restore-cwd only applies to resumed sessions; --in had no effect on a fresh -z call either. Updated MANAGER-RUNBOOK.md to require absolute paths in every prompt instead." },
+        { "at": "2026-08-15T06:11:00.000Z", "actor": "manager", "type": "step-dispatched", "note": "step-1 retried with the project's absolute path spelled out in the prompt." },
+        { "at": "2026-08-15T06:11:00.000Z", "actor": "hermes", "type": "step-reported", "note": "Created hello.txt at the correct absolute path. Verified on disk." },
+        { "at": "2026-08-15T06:11:00.000Z", "actor": "manager", "type": "review", "note": "step-1 approved. Project complete." }
+      ],
+      "tabId": null
+    }
+  ],
+  "lockedAt": null
+}

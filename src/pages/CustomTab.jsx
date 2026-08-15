@@ -3,6 +3,7 @@ import { useCamelot } from '../state/CamelotContext';
 import { PixelPanel, PixelButton, ArchHeader } from '../components/ui';
 import Torch from '../components/Torch';
 import HermesChat from './hermes-chat/index.jsx';
+import ProjectViewer from './project-viewer/index.jsx';
 
 /**
  * Generic page for a user-created custom tab. Renders a themed "empty hall", unless
@@ -12,6 +13,7 @@ import HermesChat from './hermes-chat/index.jsx';
  */
 const CONTENT_COMPONENTS = {
   'hermes-chat': HermesChat,
+  'project-viewer': ProjectViewer,
 };
 
 export default function CustomTab() {
