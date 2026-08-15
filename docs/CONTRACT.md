@@ -22,8 +22,11 @@ const {
   toggleAgentActive(id),      // flips .active, persists
   setAgentActive(id, bool),
   uploadPortrait(id, File),   // async -> stored path "/assets/portraits/xxx"; also sets agent.portrait
-  runAgentTask(id, task),     // wired for seats 01-07, 12 (see CamelotContext.jsx); stub elsewhere
-  addTab(name?), renameTab(id,name), deleteTab(id),
+  runAgentTask(id, task),     // wired for seats 02-07, 12 (see CamelotContext.jsx); stub elsewhere.
+                               // Seat-01 (Arthur) has no runAgentTask case — he's "the manager,"
+                               // running outside this app as a scheduled Claude Code session;
+                               // see docs/MANAGER-RUNBOOK.md.
+  addTab(name?, contentRef?, meta?), renameTab(id,name), deleteTab(id),
   updateSettings(patch),
 } = useCamelot();
 ```
@@ -92,3 +95,26 @@ Draw sprites/props yourself as inline SVG or canvas. No copyrighted assets (no S
 
 ## Future-proofing hooks (leave these comments where noted in the brief)
 `// HOOK: agent task execution`, `// HOOK: pipeline status feed`, `// HOOK: custom tab content mounting`.
+
+## Custom tabs (`tabs.json`)
+```json
+{ "id":"tab-<ts>-<n>", "name":"...", "type":"custom", "contentRef":"project-viewer"|"hermes-chat"|null,
+  "meta": { "projectId":"proj-..." } | null }
+```
+`contentRef` opts a tab into a component mounted by `src/pages/CustomTab.jsx`'s
+`CONTENT_COMPONENTS` registry; `meta` parameterizes that component (only
+`project-viewer` uses it today, via `meta.projectId`). `null` renders the default
+empty-hall placeholder. The "✦ New Hall" button (`TabNav.jsx`) always creates an
+unparameterized tab — populated tabs are created in code via
+`addTab(name, contentRef, meta)`, using a find-existing-or-create pattern (see
+`editor/index.jsx`'s `handleOpenHermesHall` or `hub/ProjectsPanel.jsx`) so
+repeat clicks reuse the same Hall instead of spawning duplicates.
+
+## Projects (`src/data/projects.json`)
+The manager pipeline's job record — an array of projects (id/slug/name/idea/
+status/step-by-step plan/activity log/folderPath), written directly to disk by
+the scheduled Claude Code session that runs the manager loop, read by the UI via
+`GET /api/data/projects`. Full schema and the read/write contract in
+`docs/MANAGER-RUNBOOK.md`. `GET /api/projects/:id/tree` and
+`GET /api/projects/:id/file?path=` serve a read-only, path-traversal-guarded
+view of one project's folder for its Hall (`src/pages/project-viewer/`).

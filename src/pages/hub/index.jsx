@@ -7,6 +7,7 @@ import Portrait from '../../components/Portrait';
 import Torch from '../../components/Torch';
 import Seat from './Seat';
 import SeatDetailPanel from './SeatDetailPanel';
+import ProjectsPanel from './ProjectsPanel';
 import { isOccupied } from '../../state/CamelotContext';
 import './hub.css';
 
@@ -132,6 +133,8 @@ export default function RoundTableHub() {
           <StatusLamp active={arthurActive} size={16} />
         </span>
       </div>
+
+      <ProjectsPanel />
 
       {narrow ? (
         /* ---- RESPONSIVE FALLBACK: scrollable grid of seat cards ---- */

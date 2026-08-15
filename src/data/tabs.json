@@ -5,6 +5,15 @@
       "name": "Hermes",
       "type": "custom",
       "contentRef": "hermes-chat"
+    },
+    {
+      "id": "tab-1786799730423-0",
+      "name": "Trivial Hello Test",
+      "type": "custom",
+      "contentRef": "project-viewer",
+      "meta": {
+        "projectId": "proj-1755237000000"
+      }
     }
   ]
 }

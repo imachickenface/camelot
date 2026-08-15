@@ -3,6 +3,70 @@
 All notable changes to **Camelot** are recorded here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.10.0] — 2026-08-15 — Retire the video pipeline, build the manager pipeline
+
+### Removed
+- **The old video-content pipeline.** `server/arthur.js` (`runPipeline`: Scout →
+  script → Percival → Miku → Teto → Merlin → Crab), the video-narration-specific
+  `draftScript`/`SCRIPT_TOOL` (`server/anthropic.js`) and `draftScriptViaHermes`
+  (`server/hermes.js`), and the `/api/arthur/run` route are gone from master —
+  preserved on the `legacy-video-pipeline` branch, cut before deletion so it's
+  fully recoverable. The Editor's "Run the Pipeline" panel is replaced by a
+  read-only manager status view.
+- Nothing else was deleted: Percival/Miku/Teto/Crab/Scout/Merlin's integrations,
+  routes, and Editor panels are untouched — just `active: false` in
+  `agents.json` now, dormant but callable, in case a future project needs one.
+
+### Added
+- **The manager pipeline.** Arthur (seat-01) is now "the manager": conceives
+  small digital-product ideas (or asks Hermes to), writes a step-by-step plan,
+  dispatches each step to Hermes as lead programmer, reviews what comes back,
+  escalates small fixes to a fast subagent or sends real issues back to Hermes,
+  and marks a project complete once every step passes review. Runs as a
+  **scheduled Claude Code session**, not a new Anthropic-API integration — no
+  API key needed for the manager role. Full behavior spec in the new
+  `docs/MANAGER-RUNBOOK.md`.
+- `src/data/projects.json` + `server/projects-store.js` — the job record: one
+  entry per project (idea/status/plan steps/activity log/folder path), array-
+  shaped (unlike `pipeline.json`'s one-slot-per-stage) since finished projects
+  stick around for later browsing. Written directly to disk by the scheduled
+  session; read by the UI via `GET /api/data/projects`.
+- Each project's files live in `C:\Users\super\Documents\CamelotProjects\<slug>\`
+  — outside this repo entirely, so a project can become its own independent
+  GitHub repo later. **Nothing pushes automatically** — the owner decides by
+  hand, per project.
+- **A project's Hall** (`src/pages/project-viewer/`) — plan, activity log, and a
+  read-only file-tree + content viewer, opened from a new **Hub Projects panel**
+  (`src/pages/hub/ProjectsPanel.jsx`, the "pipeline status feed" hook's first
+  real implementation). Backed by two new path-traversal-guarded routes,
+  `GET /api/projects/:id/tree` and `/file?path=` — every request resolves the
+  project's folder server-side by a validated id first, then checks the
+  resolved target is the root or starts with `root + path.sep` (not a bare
+  `startsWith`, which a same-prefix sibling directory could defeat), plus a
+  `..`-segment reject as defense in depth.
+- Tabs gained an optional `meta` field — `addTab(name, contentRef, meta)` — so
+  a `project-viewer` tab can carry which project it shows. `hermes-chat` tabs
+  are unaffected (`meta` defaults to `null`).
+
+### Fixed (found live during hand-verification, before trusting an unattended cron cadence)
+- **Hermes's `--in DIR` flag and a shell `cd` do not reliably scope where it
+  writes files.** Ran a trivial one-step project by hand as the very first
+  verification pass, twice — once `cd`'d into the project folder, once with
+  `--in <folder>` explicitly — and both times the file landed in the OS home
+  directory instead. Root cause, from `hermes --help`: `--no-restore-cwd` only
+  applies to *resumed* sessions (irrelevant to a fresh `-z` call), and `--in`
+  apparently doesn't reliably take effect either in this install. The fix that
+  actually worked: spell out the full absolute path under the project folder
+  in the prompt itself for every file Hermes touches. Documented prominently in
+  `MANAGER-RUNBOOK.md` and `CLAUDE.md` so it isn't silently reintroduced.
+- **`project-viewer`'s file tree never resolved a usable path for any
+  top-level file.** `TreeNode`'s path computation used `prefix ? ... : ''`,
+  which treated an empty-but-real prefix (a file directly inside the project
+  root) the same as "no prefix, this is the tree root itself" — so clicking any
+  top-level file always requested `path=` (empty), 404ing. Fixed by passing a
+  distinct `null` sentinel for "this node is the root" versus `''` for "this
+  node is a real top-level child with no further prefix."
+
 ## [0.9.5] — 2026-08-15 — Stop button and file attach for local Hermes
 
 ### Added

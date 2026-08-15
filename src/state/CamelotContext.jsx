@@ -139,25 +139,13 @@ export function CamelotProvider({ children }) {
   );
 
   // HOOK: agent task execution — a future pipeline runner plugs in here.
-  // Arthur (seat-01), Merlin (seat-12), Percival (seat-02), Miku (seat-03),
-  // Teto (seat-04), The Mighty Crab (seat-05), Sir Scout (seat-06), and Hermes
-  // (seat-07) are wired for real. Every other seat is still a stub until its
-  // own pipeline is built.
+  // Merlin (seat-12), Percival (seat-02), Miku (seat-03), Teto (seat-04), The
+  // Mighty Crab (seat-05), Sir Scout (seat-06), and Hermes (seat-07) are wired
+  // for real (dormant unless a project pulls them back in — see agents.json's
+  // `active` flag). Seat-01 (Arthur, now "the Manager") runs outside this app,
+  // as a scheduled Claude Code session — see docs/MANAGER-RUNBOOK.md. Every
+  // other seat is still a stub until its own pipeline is built.
   const runAgentTask = useCallback(async (id, task) => {
-    if (id === 'seat-01') {
-      // `task` is an optional idea override; empty lets Sir Scout pick. The
-      // response may carry `ok: false` with a partial `steps` list if a stage
-      // failed partway — that's still a real result to render, not an error
-      // to throw away, so only a true network/HTTP failure throws here.
-      const res = await fetch('/api/arthur/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task ? { idea: task } : {}),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'pipeline run failed');
-      return data;
-    }
     if (id === 'seat-12') {
       const res = await fetch('/api/merlin/generate', {
         method: 'POST',
@@ -353,13 +341,14 @@ export function CamelotProvider({ children }) {
 
   const idRef = useRef(0);
   const addTab = useCallback(
-    (name = 'New Hall', contentRef = null) => {
+    (name = 'New Hall', contentRef = null, meta = null) => {
       // unique id even if two are added within the same millisecond
       const id = `tab-${Date.now()}-${idRef.current++}`;
       // future-proofing: each custom tab carries id/name/type/contentRef —
       // contentRef opts into a specific mounted component (see CustomTab.jsx's
-      // registry); null keeps the default empty-hall placeholder.
-      const entry = { id, name, type: 'custom', contentRef };
+      // registry); null keeps the default empty-hall placeholder. `meta`
+      // parameterizes that component (e.g. project-viewer's { projectId }).
+      const entry = { id, name, type: 'custom', contentRef, meta };
       mutateTabs((prev) => [...prev, entry]);
       return id;
     },

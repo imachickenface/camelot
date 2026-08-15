@@ -125,11 +125,11 @@ export default function AgentEditor() {
   const [crabError, setCrabError] = useState(null);
   const [crabResult, setCrabResult] = useState(null);
 
-  // ---- Arthur-only: running the full council in sequence ----
-  const [arthurIdea, setArthurIdea] = useState('');
-  const [arthurBusy, setArthurBusy] = useState(false);
-  const [arthurError, setArthurError] = useState(null);
-  const [arthurResult, setArthurResult] = useState(null);
+  // ---- Arthur-only ("The Manager"): read-only summary of the dev pipeline ----
+  // Orchestration itself runs outside this app (a scheduled Claude Code session,
+  // see docs/MANAGER-RUNBOOK.md) — there's nothing to trigger from here anymore,
+  // just a status view of what that session has been doing.
+  const [managerProjects, setManagerProjects] = useState([]);
 
   // Load the seat's stored values into the draft whenever the SELECTED SEAT changes
   // (not on every agent mutation — that would clobber in-progress edits). Also clears
@@ -158,10 +158,27 @@ export default function AgentEditor() {
     setTetoResult(null);
     setCrabError(null);
     setCrabResult(null);
-    setArthurIdea('');
-    setArthurError(null);
-    setArthurResult(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
+  // Arthur-only: load the manager's project list for the status summary below.
+  useEffect(() => {
+    if (selectedId !== 'seat-01') {
+      setManagerProjects([]);
+      return;
+    }
+    let alive = true;
+    fetch('/api/data/projects')
+      .then((res) => (res.ok ? res.json() : { projects: [] }))
+      .then((data) => {
+        if (alive) setManagerProjects(Array.isArray(data.projects) ? data.projects : []);
+      })
+      .catch(() => {
+        if (alive) setManagerProjects([]);
+      });
+    return () => {
+      alive = false;
+    };
   }, [selectedId]);
 
   // Hermes-only: load Sir Scout's most recent candidates for the "pull an idea" dropdown.
@@ -373,22 +390,6 @@ export default function AgentEditor() {
       setCrabError(err.message || 'QA run failed');
     } finally {
       setCrabBusy(false);
-    }
-  };
-
-  const handleRunPipeline = async () => {
-    if (!selected) return;
-    setArthurBusy(true);
-    setArthurError(null);
-    setArthurResult(null);
-    try {
-      const result = await runAgentTask(selected.id, arthurIdea.trim());
-      setArthurResult(result);
-      if (!result.ok) setArthurError(result.error || 'pipeline run failed');
-    } catch (err) {
-      setArthurError(err.message || 'pipeline run failed');
-    } finally {
-      setArthurBusy(false);
     }
   };
 
@@ -606,53 +607,30 @@ export default function AgentEditor() {
             {selected.id === 'seat-01' && (
               <div className="editor-field">
                 <hr className="rune-divider" />
-                <label className="font-label t-gold editor-field-label" htmlFor="editor-arthur-input">
-                  Run the Pipeline
-                </label>
+                <label className="font-label t-gold editor-field-label">The Manager</label>
                 <p className="font-body t-ghost editor-hint">
-                  Runs the whole council in order — Scout finds an idea (or use yours below), Hermes
-                  drafts, Percival checks, Miku and Teto voice it, Merlin casts the first beat, and
-                  Crab inspects the result. Takes a couple of minutes.
+                  Arthur no longer runs a fixed pipeline from a button here — he oversees the
+                  software-dev pipeline as a scheduled Claude Code session, conceiving small
+                  product ideas, planning them step by step, and reviewing what Hermes builds.
+                  See <code>docs/MANAGER-RUNBOOK.md</code> for what each wake-up does.
                 </p>
-                <textarea
-                  id="editor-arthur-input"
-                  className="editor-textarea font-body"
-                  placeholder="Optional: give Arthur an idea directly instead of waiting on Sir Scout…"
-                  rows={2}
-                  value={arthurIdea}
-                  onChange={(e) => setArthurIdea(e.target.value)}
-                  disabled={arthurBusy}
-                />
-                <PixelButton type="button" onClick={handleRunPipeline} disabled={arthurBusy}>
-                  {arthurBusy ? 'The council is at work…' : 'Run the Pipeline'}
-                </PixelButton>
-                {arthurError && (
-                  <p className="font-body editor-hint" style={{ color: 'var(--crimson-bright)' }}>
-                    {arthurError}
-                  </p>
-                )}
-                {arthurResult && arthurResult.steps && (
+                {managerProjects.length === 0 ? (
+                  <p className="font-body t-ghost editor-hint">No projects yet.</p>
+                ) : (
                   <ul className="editor-scout-results">
-                    {arthurResult.steps.map((s, i) => (
-                      <li key={i} className="font-body">
-                        <span className={s.ok ? 't-gold' : 't-crimson'}>[{s.ok ? 'ok' : 'failed'}]</span>{' '}
-                        <span className="t-pale">{s.stage}</span> — <span className="t-ghost">{s.note}</span>
+                    {managerProjects.map((p) => (
+                      <li key={p.id} className="font-body">
+                        <span className={p.status === 'complete' ? 't-gold' : p.status === 'blocked' ? 't-crimson' : 't-pale'}>
+                          [{p.status}]
+                        </span>{' '}
+                        {p.name} <span className="t-ghost">— {(p.plan?.steps || []).filter((s) => s.status === 'complete').length}/{(p.plan?.steps || []).length} steps</span>
                       </li>
                     ))}
                   </ul>
                 )}
-                {arthurResult && arthurResult.script && (
-                  <>
-                    <p className="font-body t-pale editor-hint" style={{ whiteSpace: 'pre-wrap' }}>
-                      {arthurResult.script}
-                    </p>
-                    {arthurResult.videoUrl && (
-                      <video src={arthurResult.videoUrl} controls style={{ width: '100%', maxWidth: 320 }} />
-                    )}
-                    {arthurResult.voiceUrl && <audio src={arthurResult.voiceUrl} controls style={{ width: '100%' }} />}
-                    {arthurResult.sfxUrl && <audio src={arthurResult.sfxUrl} controls style={{ width: '100%' }} />}
-                  </>
-                )}
+                <PixelButton type="button" variant="ghost" size="sm" onClick={() => navigate('/')}>
+                  See Projects on the Round Table →
+                </PixelButton>
               </div>
             )}
 

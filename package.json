@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Camelot — The Round Table faceless content automation dashboard (UI shell). Dark gothic pixel-art.",
+  "description": "Camelot — The Round Table software-dev pipeline dashboard (UI shell). Dark gothic pixel-art.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

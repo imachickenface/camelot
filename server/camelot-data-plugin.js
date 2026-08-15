@@ -8,8 +8,8 @@ import { factCheckScript } from './anthropic.js';
 import { runHermesTask, chatWithHermes, stopHermes } from './hermes.js';
 import { generateVoiceover, generateMusic, generateSoundEffect } from './elevenlabs.js';
 import { runQa } from './crab.js';
-import { runPipeline } from './arthur.js';
 import { readPipeline, writePipeline } from './pipeline-store.js';
+import { getProject } from './projects-store.js';
 
 /**
  * Camelot local persistence server — implemented as a Vite middleware plugin so the
@@ -43,10 +43,11 @@ import { readPipeline, writePipeline } from './pipeline-store.js';
  *   POST /api/teto/generate    -> a sound-effect / foley clip via ElevenLabs (server/elevenlabs.js)
  *   POST /api/crab/check       -> QA pass over the pipeline's latest assets (server/crab.js),
  *                                 persisted into src/data/pipeline.json
- *   POST /api/arthur/run       -> run the full council in sequence (server/arthur.js):
- *                                 Scout -> Hermes -> Percival -> Miku -> Teto -> Merlin -> Crab
- *                                 (Merlin/Teto scoped to the shot list's first beat; the Hermes
- *                                 stage drafts via Claude or local Hermes per seat-07's `engine`)
+ *   GET  /api/projects/:id/tree -> read-only directory listing for one project's folder
+ *                                 (src/data/projects.json's folderPath), for its Hall's file
+ *                                 browser (src/pages/project-viewer/). Path-traversal-guarded.
+ *   GET  /api/projects/:id/file -> one file's text content from a project's folder (?path=
+ *                                 relative to folderPath), same guard as the tree route.
  *   GET  /assets/audio/:f      -> serve a generated audio clip from disk
  *   GET  /api/activity         -> live local Claude Code sessions + what each is doing
  *                                 (server/activity-watcher.js); the Village polls this
@@ -62,7 +63,7 @@ const DATA_DIR = path.join(ROOT, 'src', 'data');
 const PORTRAITS_DIR = path.join(ROOT, 'src', 'assets', 'portraits');
 const AUDIO_DIR = path.join(ROOT, 'src', 'assets', 'audio');
 
-const ALLOWED_FILES = new Set(['agents', 'tabs', 'settings', 'pipeline', 'hermeschat']);
+const ALLOWED_FILES = new Set(['agents', 'tabs', 'settings', 'pipeline', 'hermeschat', 'projects']);
 const IMAGE_TYPES = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -91,14 +92,42 @@ function sendJSON(res, status, obj) {
   res.end(JSON.stringify(obj));
 }
 
-/** Read a seat's `engine` field ("cloud" | "hermes") straight from agents.json. */
-function getAgentEngine(id) {
-  try {
-    const { agents } = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'agents.json'), 'utf-8'));
-    return (agents.find((a) => a.id === id) || {}).engine || 'cloud';
-  } catch {
-    return 'cloud';
+const MAX_PROJECT_FILE_BYTES = 1024 * 1024; // 1MB preview cap for the project file viewer
+
+/** Nested directory listing for the project file browser. Skips .git/node_modules — noise, not content. */
+function buildProjectTree(root, dir) {
+  const entries = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((e) => e.name !== '.git' && e.name !== 'node_modules')
+    .sort((a, b) => {
+      if (a.isDirectory() !== b.isDirectory()) return a.isDirectory() ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+  return {
+    name: dir === root ? path.basename(root) : path.basename(dir),
+    type: 'dir',
+    children: entries.map((e) =>
+      e.isDirectory() ? buildProjectTree(root, path.join(dir, e.name)) : { name: e.name, type: 'file' },
+    ),
+  };
+}
+
+/**
+ * Resolve a project's file-browser routes' target path, guarding against traversal.
+ * Never trusts a client-supplied absolute path — only `folderPath` looked up
+ * server-side by a validated project id, plus a relative path resolved against it.
+ * @returns {{ root: string, target: string } | null} null if the request escapes the root.
+ */
+function resolveProjectPath(project, relPath) {
+  const root = path.resolve(project.folderPath);
+  if (String(relPath || '')
+    .split(/[\\/]/)
+    .includes('..')) {
+    return null;
   }
+  const target = path.resolve(root, relPath || '.');
+  if (target !== root && !target.startsWith(root + path.sep)) return null;
+  return { root, target };
 }
 
 async function handle(req, res, next) {
@@ -348,19 +377,39 @@ async function handle(req, res, next) {
     }
   }
 
-  // --- Arthur: run the full council in sequence, one demo-scoped pass ---
-  if (req.method === 'POST' && url === '/api/arthur/run') {
-    try {
-      const body = await readBody(req);
-      const { idea } = body ? JSON.parse(body) : {};
-      // Always 200 — a pipeline run that stopped partway (e.g. one stage
-      // errored) is a meaningful result with its own `ok`/`steps`, not an
-      // HTTP-level failure; the client renders whatever progress was made.
-      const result = await runPipeline({ idea, scriptEngine: getAgentEngine('seat-07') });
-      return sendJSON(res, 200, result);
-    } catch (err) {
-      return sendJSON(res, 502, { ok: false, error: err.message || 'pipeline run failed' });
+  // --- Project Hall: read-only directory tree for one project's folder ---
+  const treeMatch = url.match(/^\/api\/projects\/([^/]+)\/tree$/);
+  if (req.method === 'GET' && treeMatch) {
+    const project = getProject(decodeURIComponent(treeMatch[1]));
+    if (!project) return sendJSON(res, 404, { error: 'project not found' });
+    const resolved = resolveProjectPath(project, '.');
+    if (!resolved) return sendJSON(res, 403, { error: 'invalid project path' });
+    if (!fs.existsSync(resolved.root)) return sendJSON(res, 200, { tree: null });
+    return sendJSON(res, 200, { tree: buildProjectTree(resolved.root, resolved.root) });
+  }
+
+  // --- Project Hall: one file's text content, ?path= relative to the project's folder ---
+  const fileMatch = url.match(/^\/api\/projects\/([^/]+)\/file$/);
+  if (req.method === 'GET' && fileMatch) {
+    const project = getProject(decodeURIComponent(fileMatch[1]));
+    if (!project) return sendJSON(res, 404, { error: 'project not found' });
+    const query = new URLSearchParams((req.url.split('?')[1]) || '');
+    const resolved = resolveProjectPath(project, query.get('path') || '');
+    if (!resolved) return sendJSON(res, 403, { error: 'path escapes project folder' });
+    const { target } = resolved;
+    if (!fs.existsSync(target) || !fs.statSync(target).isFile()) {
+      return sendJSON(res, 404, { error: 'file not found' });
     }
+    const stat = fs.statSync(target);
+    if (stat.size > MAX_PROJECT_FILE_BYTES) {
+      return sendJSON(res, 200, { binary: true, note: `too large to preview (${Math.round(stat.size / 1024)}KB)` });
+    }
+    const buf = fs.readFileSync(target);
+    // Cheap binary sniff: a null byte anywhere in the first chunk means "don't render as text."
+    if (buf.subarray(0, 8000).includes(0)) {
+      return sendJSON(res, 200, { binary: true, note: 'binary file, not previewable' });
+    }
+    return sendJSON(res, 200, { binary: false, content: buf.toString('utf-8') });
   }
 
   next();
