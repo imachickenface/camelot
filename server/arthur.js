@@ -1,12 +1,13 @@
 import { scoutIdeas } from './reddit-scout.js';
 import { draftScript, factCheckScript } from './anthropic.js';
+import { draftScriptViaHermes } from './hermes.js';
 import { generateVoiceover, generateSoundEffect } from './elevenlabs.js';
 import { generateClip } from './higgsfield.js';
 import { runQa } from './crab.js';
 import { writePipeline } from './pipeline-store.js';
 
 /**
- * Arthur's orchestrator — runs the full council in sequence: Scout -> Hagrid ->
+ * Arthur's orchestrator — runs the full council in sequence: Scout -> Hermes ->
  * Percival -> Miku -> Teto -> Merlin -> Crab. A demo-scoped run: Merlin and Teto
  * only work the shot list's FIRST beat (a full shot list would multiply Merlin's
  * ~1-2 minutes per clip by 5-15+ beats). Runs straight through with no approval
@@ -14,8 +15,16 @@ import { writePipeline } from './pipeline-store.js';
  *
  * Each stage's own pipeline.json section is written exactly as if you'd run
  * that seat's panel individually, so the Editor stays consistent either way.
+ *
+ * @param {object} opts
+ * @param {string} [opts.idea]
+ * @param {'cloud'|'hermes'} [opts.scriptEngine] — seat-07's `engine` field, read by
+ *   the caller (camelot-data-plugin.js) from agents.json. Picks which backend drafts
+ *   the script: Anthropic (cloud) or local Hermes. Everything downstream (Percival,
+ *   Teto, Merlin) consumes the same { script, shotList } shape either way.
  */
-export async function runPipeline({ idea: ideaOverride } = {}) {
+export async function runPipeline({ idea: ideaOverride, scriptEngine = 'cloud' } = {}) {
+  const draft = scriptEngine === 'hermes' ? draftScriptViaHermes : draftScript;
   const steps = [];
   const now = () => new Date().toISOString();
   let currentStage = 'scout';
@@ -35,10 +44,10 @@ export async function runPipeline({ idea: ideaOverride } = {}) {
       steps.push({ stage: 'scout', ok: true, note: 'skipped — idea supplied manually' });
     }
 
-    currentStage = 'hagrid';
-    const { script, shotList } = await draftScript(idea);
-    writePipeline('hagrid', { idea, lastRunAt: now(), script, shotList });
-    steps.push({ stage: 'hagrid', ok: true, note: `script drafted, ${shotList.length} beats` });
+    currentStage = 'hermes';
+    const { script, shotList } = await draft(idea);
+    writePipeline('hermes', { idea, lastRunAt: now(), script, shotList });
+    steps.push({ stage: 'hermes', ok: true, note: `script drafted, ${shotList.length} beats` });
 
     currentStage = 'percival';
     const { claims } = await factCheckScript(script);

@@ -22,7 +22,7 @@ const {
   toggleAgentActive(id),      // flips .active, persists
   setAgentActive(id, bool),
   uploadPortrait(id, File),   // async -> stored path "/assets/portraits/xxx"; also sets agent.portrait
-  runAgentTask(id, task),     // HOOK stub for future automation
+  runAgentTask(id, task),     // wired for seats 01-07, 12 (see CamelotContext.jsx); stub elsewhere
   addTab(name?), renameTab(id,name), deleteTab(id),
   updateSettings(patch),
 } = useCamelot();
@@ -39,7 +39,9 @@ LIVE on the others with no refresh.
   "role":"Chief of Staff — Orchestrator", "description":"...", "personality":"...",
   "portrait":"/assets/portraits/arthur.svg", "occupied":true, "active":true }
 ```
-Seats `seat-02`..`seat-12` start vacant (all string fields `""`, occupied/active `false`).
+Every seat except Arthur (`seat-01`) also carries `"engine": "cloud" | "hermes"` — which
+backend `runAgentTask` calls into for that seat: cloud APIs (Anthropic/ElevenLabs/Higgsfield)
+or the local Hermes Agent (`server/hermes.js`). Editable per-seat in the Agent Editor.
 Arthur is always `seat-01`. His `active` flag drives the Village behavior.
 
 ## Deep-link contract (React Router v6 is installed)

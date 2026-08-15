@@ -100,5 +100,10 @@
     "text": "A weathered old lighthouse keeper with a thick grey beard stands atop a tall stone lighthouse at dusk, warm beam sweeping over dark churning ocean, cinematic wide shot, moody teal and amber lighting, film grain",
     "lastRunAt": "2026-07-22T23:31:44.240Z",
     "audioUrl": "/assets/audio/teto-sfx-1784763104239.mp3"
+  },
+  "hermes": {
+    "task": "Reply with exactly: Hermes is wired into Camelot.",
+    "lastRunAt": "2026-08-15T11:32:40.320Z",
+    "result": "Hermes is wired into Camelot."
   }
 }

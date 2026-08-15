@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useCamelot, isOccupied } from '../../state/CamelotContext';
 import { PixelPanel, PixelButton, PixelFrame, ArchHeader } from '../../components/ui';
 import Portrait from '../../components/Portrait';
@@ -8,7 +8,7 @@ import { Crown } from '../../components/emblems';
 import './editor.css';
 
 /** Empty draft shape — mirrors the editable subset of the agent schema. */
-const emptyDraft = { name: '', role: '', description: '', personality: '', active: false };
+const emptyDraft = { name: '', role: '', description: '', personality: '', active: false, engine: 'cloud' };
 
 /**
  * Seats whose Status toggle also drives a wandering inhabitant in the Village
@@ -29,6 +29,7 @@ function draftFromAgent(agent) {
     description: agent.description || '',
     personality: agent.personality || '',
     active: Boolean(agent.active),
+    engine: agent.engine === 'hermes' ? 'hermes' : 'cloud',
   };
 }
 
@@ -38,8 +39,9 @@ function draftFromAgent(agent) {
  * the illuminated manuscript form for the selected seat (right).
  */
 export default function AgentEditor() {
-  const { agents, updateAgent, uploadPortrait, setAgentActive, runAgentTask } = useCamelot();
+  const { agents, tabs, addTab, updateAgent, uploadPortrait, setAgentActive, runAgentTask } = useCamelot();
   const [sp, setSp] = useSearchParams();
+  const navigate = useNavigate();
 
   // ---- Seat selection, deep-linked via ?seat=seat-03 ----
   const requestedSeat = sp.get('seat');
@@ -92,7 +94,7 @@ export default function AgentEditor() {
   const [scoutError, setScoutError] = useState(null);
   const [scoutResult, setScoutResult] = useState(null);
 
-  // ---- Hagrid-only: drafting a script + shot list from an idea ----
+  // ---- Hermes-only: unrestricted free-form task, local + full tool access ----
   const [scriptIdea, setScriptIdea] = useState('');
   const [scoutCandidates, setScoutCandidates] = useState([]);
   const [scripting, setScripting] = useState(false);
@@ -162,7 +164,7 @@ export default function AgentEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
 
-  // Hagrid-only: load Sir Scout's most recent candidates for the "pull an idea" dropdown.
+  // Hermes-only: load Sir Scout's most recent candidates for the "pull an idea" dropdown.
   useEffect(() => {
     if (selectedId !== 'seat-07') {
       setScoutCandidates([]);
@@ -182,7 +184,9 @@ export default function AgentEditor() {
     };
   }, [selectedId]);
 
-  // Percival-only: load Hagrid's most recent script to prefill the fact-check box.
+  // Percival-only: load Hermes's most recent script to prefill the fact-check box
+  // (only set if Hermes's last run happened to be a script draft — free-form tasks
+  // won't have a .script field, and that's fine, the prefill button just won't show).
   useEffect(() => {
     if (selectedId !== 'seat-02') {
       setHagridScript('');
@@ -190,9 +194,9 @@ export default function AgentEditor() {
     }
     let alive = true;
     fetch('/api/data/pipeline')
-      .then((res) => (res.ok ? res.json() : { hagrid: null }))
+      .then((res) => (res.ok ? res.json() : { hermes: null }))
       .then((data) => {
-        if (alive) setHagridScript((data.hagrid && data.hagrid.script) || '');
+        if (alive) setHagridScript((data.hermes && data.hermes.script) || '');
       })
       .catch(() => {
         if (alive) setHagridScript('');
@@ -232,6 +236,7 @@ export default function AgentEditor() {
         role: draft.role,
         description: draft.description,
         personality: draft.personality,
+        ...(selected.id !== 'seat-01' ? { engine: draft.engine } : {}),
       });
       // Persist a freshly-picked portrait, if any.
       if (stagedFile) {
@@ -290,6 +295,14 @@ export default function AgentEditor() {
     } finally {
       setScripting(false);
     }
+  };
+
+  // Open Hermes's standing chat Hall — reuse the existing one if it's already been
+  // created, rather than spawning a duplicate every time this is clicked.
+  const handleOpenHermesHall = () => {
+    const existing = tabs.find((t) => t.contentRef === 'hermes-chat');
+    const id = existing ? existing.id : addTab('Hermes', 'hermes-chat');
+    navigate(`/tab/${id}`);
   };
 
   const handleFactCheck = async () => {
@@ -553,6 +566,30 @@ export default function AgentEditor() {
               )}
             </div>
 
+            {/* ---- Engine (which backend this seat's tasks run through) ---- */}
+            {selected.id !== 'seat-01' && (
+              <div className="editor-field">
+                <label className="font-label t-gold editor-field-label" htmlFor="editor-engine-input">
+                  Engine
+                </label>
+                <select
+                  id="editor-engine-input"
+                  className="editor-input font-body"
+                  value={draft.engine}
+                  onChange={handleFieldChange('engine')}
+                >
+                  <option value="cloud">Cloud (Anthropic / ElevenLabs / Higgsfield)</option>
+                  <option value="hermes">Local (Hermes Agent)</option>
+                </select>
+                {draft.engine === 'hermes' && (
+                  <p className="font-body t-ghost editor-hint">
+                    Runs on this machine via the local Hermes Agent, not the cloud APIs above —
+                    free, but slower, and (for seat-07 specifically) unrestricted tool access.
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* HOOK: agent task execution — a future pipeline runner/tester mounts here,
                 reading the saved agent record (name/role/description/personality) for this seat. */}
             {selected.id === 'seat-01' && (
@@ -562,7 +599,7 @@ export default function AgentEditor() {
                   Run the Pipeline
                 </label>
                 <p className="font-body t-ghost editor-hint">
-                  Runs the whole council in order — Scout finds an idea (or use yours below), Hagrid
+                  Runs the whole council in order — Scout finds an idea (or use yours below), Hermes
                   drafts, Percival checks, Miku and Teto voice it, Merlin casts the first beat, and
                   Crab inspects the result. Takes a couple of minutes.
                 </p>
@@ -687,14 +724,26 @@ export default function AgentEditor() {
               <div className="editor-field">
                 <hr className="rune-divider" />
                 <label className="font-label t-gold editor-field-label" htmlFor="editor-script-input">
-                  Draft a Script
+                  Give Hermes a Task
                 </label>
+                <p className="font-body t-ghost editor-hint">
+                  Unrestricted — runs on the local machine with full shell/file/browser/MCP access, same as
+                  running Hermes yourself in a terminal. Anything goes: draft a script, answer a question,
+                  do something with a file. No approval prompts; every action he takes is auto-approved.
+                </p>
+                <PixelButton type="button" variant="ghost" size="sm" onClick={handleOpenHermesHall}>
+                  Open Hermes&rsquo;s Chat Hall →
+                </PixelButton>
+                <p className="font-body t-ghost editor-hint">
+                  For a one-off task, use the box below. For a standing conversation Hermes remembers
+                  across messages, use the Hall instead.
+                </p>
                 {scoutCandidates.length > 0 && (
                   <select
                     className="editor-input font-body"
                     value=""
                     onChange={(e) => {
-                      if (e.target.value) setScriptIdea(e.target.value);
+                      if (e.target.value) setScriptIdea(`Write a narration script and shot list for: ${e.target.value}`);
                     }}
                     disabled={scripting}
                   >
@@ -709,34 +758,24 @@ export default function AgentEditor() {
                 <textarea
                   id="editor-script-input"
                   className="editor-textarea font-body"
-                  placeholder="An idea for Hagrid to turn into a script…"
+                  placeholder="Anything — draft a script, check a file, run a command…"
                   rows={2}
                   value={scriptIdea}
                   onChange={(e) => setScriptIdea(e.target.value)}
                   disabled={scripting}
                 />
                 <PixelButton type="button" onClick={handleDraftScript} disabled={scripting || !scriptIdea.trim()}>
-                  {scripting ? 'Writing…' : 'Draft'}
+                  {scripting ? 'Working…' : 'Send'}
                 </PixelButton>
                 {scriptError && (
                   <p className="font-body editor-hint" style={{ color: 'var(--crimson-bright)' }}>
                     {scriptError}
                   </p>
                 )}
-                {scriptResult && scriptResult.script && (
-                  <>
-                    <p className="font-body t-pale editor-hint" style={{ whiteSpace: 'pre-wrap' }}>
-                      {scriptResult.script}
-                    </p>
-                    <ul className="editor-scout-results">
-                      {scriptResult.shotList.map((s, i) => (
-                        <li key={i} className="font-body">
-                          <span className="t-gold">{s.beat}</span>{' '}
-                          <span className="t-ghost">({s.durationSec}s)</span> — {s.prompt}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
+                {scriptResult && scriptResult.result && (
+                  <p className="font-body t-pale editor-hint" style={{ whiteSpace: 'pre-wrap' }}>
+                    {scriptResult.result}
+                  </p>
                 )}
               </div>
             )}
@@ -754,7 +793,7 @@ export default function AgentEditor() {
                     size="sm"
                     onClick={() => setFactCheckInput(hagridScript)}
                   >
-                    Pull Hagrid&rsquo;s latest script
+                    Pull Hermes&rsquo;s latest script
                   </PixelButton>
                 )}
                 <textarea

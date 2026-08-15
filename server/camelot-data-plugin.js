@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { generateClip } from './higgsfield.js';
 import { getLiveActivities } from './activity-watcher.js';
 import { scoutIdeas } from './reddit-scout.js';
-import { draftScript, factCheckScript } from './anthropic.js';
+import { factCheckScript } from './anthropic.js';
+import { runHermesTask, chatWithHermes } from './hermes.js';
 import { generateVoiceover, generateMusic, generateSoundEffect } from './elevenlabs.js';
 import { runQa } from './crab.js';
 import { runPipeline } from './arthur.js';
@@ -26,8 +27,13 @@ import { readPipeline, writePipeline } from './pipeline-store.js';
  *   POST /api/merlin/generate  -> cast a script beat into a clip via Higgsfield (server/higgsfield.js)
  *   POST /api/scout/run        -> pull candidate ideas from Reddit's RSS feeds (server/reddit-scout.js),
  *                                 persisted into src/data/pipeline.json
- *   POST /api/hagrid/draft     -> turn an idea into a script + shot list via Claude (server/anthropic.js),
- *                                 persisted into src/data/pipeline.json
+ *   POST /api/hermes/run       -> run any free-form task through the local Hermes Agent
+ *                                 (server/hermes.js) — full shell/file/browser/MCP access, no
+ *                                 approval prompts (--yolo). Persisted into src/data/pipeline.json
+ *   POST /api/hermes/chat      -> one turn in Hermes's persistent chat Hall — same local
+ *                                 engine, but continues one long-lived session (`hermes -z
+ *                                 --continue`) instead of a fresh call each time. Transcript
+ *                                 persisted into src/data/hermeschat.json
  *   POST /api/percival/check   -> fact-check a script via Claude + web search (server/anthropic.js),
  *                                 persisted into src/data/pipeline.json
  *   POST /api/miku/generate    -> voiceover or music via ElevenLabs (server/elevenlabs.js)
@@ -35,8 +41,9 @@ import { readPipeline, writePipeline } from './pipeline-store.js';
  *   POST /api/crab/check       -> QA pass over the pipeline's latest assets (server/crab.js),
  *                                 persisted into src/data/pipeline.json
  *   POST /api/arthur/run       -> run the full council in sequence (server/arthur.js):
- *                                 Scout -> Hagrid -> Percival -> Miku -> Teto -> Merlin -> Crab
- *                                 (Merlin/Teto scoped to the shot list's first beat)
+ *                                 Scout -> Hermes -> Percival -> Miku -> Teto -> Merlin -> Crab
+ *                                 (Merlin/Teto scoped to the shot list's first beat; the Hermes
+ *                                 stage drafts via Claude or local Hermes per seat-07's `engine`)
  *   GET  /assets/audio/:f      -> serve a generated audio clip from disk
  *   GET  /api/activity         -> live local Claude Code sessions + what each is doing
  *                                 (server/activity-watcher.js); the Village polls this
@@ -52,7 +59,7 @@ const DATA_DIR = path.join(ROOT, 'src', 'data');
 const PORTRAITS_DIR = path.join(ROOT, 'src', 'assets', 'portraits');
 const AUDIO_DIR = path.join(ROOT, 'src', 'assets', 'audio');
 
-const ALLOWED_FILES = new Set(['agents', 'tabs', 'settings', 'pipeline']);
+const ALLOWED_FILES = new Set(['agents', 'tabs', 'settings', 'pipeline', 'hermeschat']);
 const IMAGE_TYPES = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -79,6 +86,16 @@ function sendJSON(res, status, obj) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(obj));
+}
+
+/** Read a seat's `engine` field ("cloud" | "hermes") straight from agents.json. */
+function getAgentEngine(id) {
+  try {
+    const { agents } = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'agents.json'), 'utf-8'));
+    return (agents.find((a) => a.id === id) || {}).engine || 'cloud';
+  } catch {
+    return 'cloud';
+  }
 }
 
 async function handle(req, res, next) {
@@ -194,26 +211,48 @@ async function handle(req, res, next) {
     }
   }
 
-  // --- Hagrid: draft a script + shot list from an idea and persist to pipeline.json ---
-  if (req.method === 'POST' && url === '/api/hagrid/draft') {
+  // --- Hermes: run any free-form task locally, full tool access, persist to pipeline.json ---
+  if (req.method === 'POST' && url === '/api/hermes/run') {
     try {
       const body = await readBody(req);
-      const { idea } = JSON.parse(body);
-      if (!idea || !String(idea).trim()) {
-        return sendJSON(res, 400, { error: 'idea is required' });
+      const { task } = JSON.parse(body);
+      if (!task || !String(task).trim()) {
+        return sendJSON(res, 400, { error: 'task is required' });
       }
-      const { script, shotList } = await draftScript(String(idea).trim());
+      const { result } = await runHermesTask(String(task).trim());
 
-      writePipeline('hagrid', {
-        idea: String(idea).trim(),
+      writePipeline('hermes', {
+        task: String(task).trim(),
         lastRunAt: new Date().toISOString(),
-        script,
-        shotList,
+        result,
       });
 
-      return sendJSON(res, 200, { ok: true, script, shotList });
+      return sendJSON(res, 200, { ok: true, result });
     } catch (err) {
-      return sendJSON(res, 502, { ok: false, error: err.message || 'draft failed' });
+      return sendJSON(res, 502, { ok: false, error: err.message || 'Hermes run failed' });
+    }
+  }
+
+  // --- Hermes: one turn in his persistent chat Hall (src/data/hermeschat.json) ---
+  if (req.method === 'POST' && url === '/api/hermes/chat') {
+    try {
+      const body = await readBody(req);
+      const { message } = JSON.parse(body);
+      if (!message || !String(message).trim()) {
+        return sendJSON(res, 400, { error: 'message is required' });
+      }
+      const clean = String(message).trim();
+      const { reply } = await chatWithHermes(clean);
+
+      const chatPath = path.join(DATA_DIR, 'hermeschat.json');
+      const chat = fs.existsSync(chatPath) ? JSON.parse(fs.readFileSync(chatPath, 'utf-8')) : { messages: [] };
+      chat.messages.push({ role: 'user', text: clean, at: new Date().toISOString() });
+      chat.messages.push({ role: 'hermes', text: reply, at: new Date().toISOString() });
+      fs.writeFileSync(chatPath, JSON.stringify(chat, null, 2));
+
+      return sendJSON(res, 200, { ok: true, reply });
+    } catch (err) {
+      return sendJSON(res, 502, { ok: false, error: err.message || 'Hermes chat failed' });
     }
   }
 
@@ -309,7 +348,7 @@ async function handle(req, res, next) {
       // Always 200 — a pipeline run that stopped partway (e.g. one stage
       // errored) is a meaningful result with its own `ok`/`steps`, not an
       // HTTP-level failure; the client renders whatever progress was made.
-      const result = await runPipeline({ idea });
+      const result = await runPipeline({ idea, scriptEngine: getAgentEngine('seat-07') });
       return sendJSON(res, 200, result);
     } catch (err) {
       return sendJSON(res, 502, { ok: false, error: err.message || 'pipeline run failed' });

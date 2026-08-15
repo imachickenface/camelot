@@ -18,6 +18,16 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       open: false,
       strictPort: false,
+      // src/data/*.json is app STATE, not source — the persistence plugin writes
+      // to it on every agent edit / task run / chat message. Without this, Vite's
+      // watcher sees those writes as source changes and force-reloads the page,
+      // silently wiping in-progress UI state (a "sending…" spinner, an unsaved
+      // draft) right as a request completes. Import-time source changes to these
+      // files still take effect on the next natural reload; this only stops the
+      // watcher from treating runtime data writes as code changes.
+      watch: {
+        ignored: ['**/src/data/**'],
+      },
     },
   };
 });

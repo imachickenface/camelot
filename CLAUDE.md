@@ -11,14 +11,33 @@ It's themed entirely around King Arthur and the Knights of the Round Table, rend
 in a **dark gothic pixel-art** aesthetic (carved stone, gold inlay, torchlight,
 blackletter — see `docs/DESIGN.md`).
 
-The current build is the **foundation + UI shell**: the Round Table Hub, the Agent
-Editor, the Village overworld, and a persistent tab system. The automation agents
-(Reddit scouting, scriptwriting, video/voice generation) are **not wired into the UI
-yet** — but the backend integration files for them already exist in `server/`
-(`anthropic.js`, `elevenlabs.js`, `higgsfield.js`, `reddit-scout.js`, `arthur.js`,
-`activity-watcher.js`, `pipeline-store.js`) as building blocks, and the app is
-structured so they can be plugged in without restructuring. Look for `// HOOK:`
-comments marking the extension points.
+Past the UI shell (Round Table Hub, Agent Editor, Village, tab system), **most of the
+automation is actually wired and working**, not just stubbed — despite what an older
+version of this file used to claim (corrected 2026-08-15; if you read that elsewhere,
+it was wrong). `runAgentTask` in `CamelotContext.jsx` is real for seats 01, 02, 03, 04,
+05, 06, 07, and 12 — each hits a live `server/*.js` integration (Anthropic, ElevenLabs,
+Higgsfield, Reddit RSS, or the local Hermes Agent — see **Engines**, below) and persists
+its result into `src/data/pipeline.json`. Only the vacant seats and the Rift Herald
+(seat-09, publishing) are still unbuilt. `// HOOK:` comments mark where those and other
+extension points (custom tab content, pipeline status feed) go.
+
+### Engines — cloud vs. local
+
+Every seat except Arthur (`seat-01`) has an `"engine"` field in `agents.json`:
+`"cloud"` (Anthropic/ElevenLabs/Higgsfield, needs API keys) or `"hermes"` (runs on
+this machine via a local Hermes Agent install, no API key, but slower). Editable
+per-seat in the Agent Editor. `server/hermes.js` is the integration — it shells out to
+the `hermes` CLI (`hermes -z "<task>" --yolo`), so it needs a working local Hermes Agent
+install configured with a model (this machine has one wired to a local Qwen3.8-27B via
+Ollama; a fresh machine would need its own setup).
+
+**Seat-07 ("Hermes") is a special case, not just an engine choice on a normal seat.**
+It's deliberately unrestricted — full shell/file/browser/MCP access, `--yolo` auto-approves
+every tool call because there's no terminal for Hermes to prompt in. That's a real,
+significant capability for something one button-click in a web UI can trigger, not a
+detail to gloss over. It was built this way on the owner's explicit, informed request
+(2026-08-15) — don't walk it back to something safer without asking first, and don't
+extend that same "no limitations" treatment to any other seat without asking either.
 
 > **August 2026 note:** this project used to be a different Node/Fastify monorepo
 > (`apps/server` + `apps/web` + `packages/shared`). That version was retired and
@@ -55,10 +74,11 @@ The owner is **non-technical**. So:
   (or the owner) can read/edit them directly and the app reflects it on next load.
 - **No Docker.** `npm run dev` at http://localhost:5173 is the whole app — the
   canonical way to run it, not a preview of something else.
-- **Secrets**: `.env` (gitignored) holds `HF_CREDENTIALS` (Higgsfield, for Merlin's
-  video generation), `ANTHROPIC_API_KEY` (Hagrid's scriptwriting, Percival's
-  fact-checking), and `ELEVENLABS_API_KEY`/`ELEVENLABS_VOICE_ID` (Miku's
-  voiceover/music, Teto's sound effects). See `.env.example` for the full list.
+- **Secrets & local config**: `.env` (gitignored) holds `HF_CREDENTIALS` (Higgsfield,
+  for Merlin's video generation), `ANTHROPIC_API_KEY` (the scriptwriting seat's cloud
+  engine, Percival's fact-checking), `ELEVENLABS_API_KEY`/`ELEVENLABS_VOICE_ID` (Miku's
+  voiceover/music, Teto's sound effects), and `HERMES_BIN`/`HERMES_CWD` (path to the
+  local Hermes Agent CLI). See `.env.example` for the full list.
 
 ## The three main tabs
 
@@ -73,11 +93,13 @@ The owner is **non-technical**. So:
 Custom tabs (`✦ New Hall`) persist to `tabs.json`; each has `{ id, name, type,
 contentRef }` — `contentRef` is reserved for mounting real content later.
 
-## How to add automation (the plug-in design)
+## How to add automation for a remaining seat
 
-Extension points are already marked with `// HOOK:` comments:
-- **Agent task execution** — in the Hub's seat detail panel, the Editor form, and a
-  `runAgentTask(id, task)` stub in `CamelotContext`.
+Follow the existing pattern: a `server/<name>.js` integration module, a route in
+`server/camelot-data-plugin.js`, and a case in `runAgentTask(id, task)` in
+`CamelotContext.jsx` — `server/hermes.js` + its `/api/hermes/run` route + its
+`CamelotContext` case is the most recent worked example. Remaining `// HOOK:` comments
+mark what's still open:
 - **Pipeline status feed** — in the Hub's council status strip and the persistence
   plugin.
 - **Custom tab content mounting** — in the router and `src/pages/CustomTab.jsx`.
