@@ -3,6 +3,20 @@
 All notable changes to **Camelot** are recorded here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.9.5] — 2026-08-15 — Stop button and file attach for local Hermes
+
+### Added
+- **Stop button** for local Hermes calls — Hermes's Hall and the Editor's task panel
+  both swap Send for a Stop button while a call is in flight. `server/hermes.js` now
+  tracks the in-flight child process (`currentProc`) and exposes `stopHermes()`,
+  wired to a new `POST /api/hermes/stop` route. Local inference can run for minutes;
+  this lets you cut a bad or unwanted reply short instead of waiting out the full
+  10-minute server-side timeout.
+- **File attach** (📎) in Hermes's Hall — reads a text file client-side (200KB cap)
+  and folds its contents into the message actually sent to Hermes, while the chat
+  log shows just a short "📎 filename" line. Verified live: attached a file with a
+  planted secret word, Hermes read it back correctly from the attachment.
+
 ## [0.9.4] — 2026-08-15 — Hermes's Hall: a persistent chat, plus real bugs found running it live
 
 ### Added

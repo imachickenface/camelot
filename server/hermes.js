@@ -64,23 +64,52 @@ function hermesTimeoutMs() {
   return Number(process.env.HERMES_TIMEOUT_MS) || 10 * 60 * 1000;
 }
 
+// Tracks whichever Hermes call is currently running so the UI's Stop button has
+// something to kill. Single slot: fine in practice because chat calls are already
+// serialized (chatQueue below) and this is a single-user local app — a task-panel
+// call and a chat call running at the exact same moment is an edge case, not a
+// case worth a multi-process registry for. Stop always targets the most recent call.
+let currentProc = null;
+let stopRequested = false;
+
 async function callHermes(prompt, extraArgs = []) {
   const clean = String(prompt || '').trim();
   if (!clean) throw new Error('empty task');
   const timeoutMs = hermesTimeoutMs();
+  const promise = execFileAsync(
+    hermesBin(),
+    ['-z', clean, '--no-restore-cwd', '--yolo', '--reasoning', reasoningEffort(), ...extraArgs],
+    { cwd: hermesCwd(), timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024 },
+  );
+  // util.promisify(execFile)'s returned promise carries the underlying ChildProcess
+  // on `.child` — that's what stopHermes() below actually kills.
+  currentProc = promise.child;
   try {
-    const { stdout } = await execFileAsync(
-      hermesBin(),
-      ['-z', clean, '--no-restore-cwd', '--yolo', '--reasoning', reasoningEffort(), ...extraArgs],
-      { cwd: hermesCwd(), timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024 },
-    );
+    const { stdout } = await promise;
     return stdout.trim();
   } catch (err) {
+    if (stopRequested) {
+      throw new Error('Stopped');
+    }
     if (err.killed || err.signal === 'SIGTERM') {
       throw new Error(`Hermes timed out after ${Math.round(timeoutMs / 1000)}s`);
     }
     throw new Error((err.stderr || '').trim() || err.message || 'Hermes call failed');
+  } finally {
+    currentProc = null;
+    stopRequested = false;
   }
+}
+
+/**
+ * Kill whatever Hermes call is currently running (task, chat, or script draft).
+ * @returns {boolean} true if something was actually running and got killed.
+ */
+export function stopHermes() {
+  if (!currentProc) return false;
+  stopRequested = true;
+  currentProc.kill();
+  return true;
 }
 
 /**

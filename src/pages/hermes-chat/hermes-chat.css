@@ -117,6 +117,35 @@
   font-size: 15px;
 }
 
+.hermes-chat__attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 4px 8px;
+  background: var(--raised-stone);
+  border: 1px solid var(--stone-edge-light);
+  font-size: 14px;
+  color: var(--parchment);
+}
+
+.hermes-chat__attachment-remove {
+  background: none;
+  border: none;
+  color: var(--ghost-grey);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.hermes-chat__attachment-remove:hover {
+  color: var(--crimson-bright);
+}
+
+.hermes-chat__file-input {
+  display: none;
+}
+
 .hermes-chat__input-row {
   display: flex;
   gap: 10px;

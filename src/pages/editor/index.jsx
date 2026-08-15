@@ -297,6 +297,17 @@ export default function AgentEditor() {
     }
   };
 
+  // Local Hermes calls can take minutes — lets you cut one short instead of waiting
+  // out the full server-side timeout. Only meaningful when engine is "hermes"; the
+  // cloud path resolves quickly enough that this isn't needed there.
+  const handleStopHermesTask = async () => {
+    try {
+      await fetch('/api/hermes/stop', { method: 'POST' });
+    } catch {
+      // best-effort
+    }
+  };
+
   // Open Hermes's standing chat Hall — reuse the existing one if it's already been
   // created, rather than spawning a duplicate every time this is clicked.
   const handleOpenHermesHall = () => {
@@ -764,9 +775,15 @@ export default function AgentEditor() {
                   onChange={(e) => setScriptIdea(e.target.value)}
                   disabled={scripting}
                 />
-                <PixelButton type="button" onClick={handleDraftScript} disabled={scripting || !scriptIdea.trim()}>
-                  {scripting ? 'Working…' : 'Send'}
-                </PixelButton>
+                {scripting ? (
+                  <PixelButton type="button" variant="crimson" onClick={handleStopHermesTask}>
+                    Stop
+                  </PixelButton>
+                ) : (
+                  <PixelButton type="button" onClick={handleDraftScript} disabled={!scriptIdea.trim()}>
+                    Send
+                  </PixelButton>
+                )}
                 {scriptError && (
                   <p className="font-body editor-hint" style={{ color: 'var(--crimson-bright)' }}>
                     {scriptError}

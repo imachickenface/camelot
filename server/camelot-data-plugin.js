@@ -5,7 +5,7 @@ import { generateClip } from './higgsfield.js';
 import { getLiveActivities } from './activity-watcher.js';
 import { scoutIdeas } from './reddit-scout.js';
 import { factCheckScript } from './anthropic.js';
-import { runHermesTask, chatWithHermes } from './hermes.js';
+import { runHermesTask, chatWithHermes, stopHermes } from './hermes.js';
 import { generateVoiceover, generateMusic, generateSoundEffect } from './elevenlabs.js';
 import { runQa } from './crab.js';
 import { runPipeline } from './arthur.js';
@@ -34,6 +34,9 @@ import { readPipeline, writePipeline } from './pipeline-store.js';
  *                                 engine, but continues one long-lived session (`hermes -z
  *                                 --continue`) instead of a fresh call each time. Transcript
  *                                 persisted into src/data/hermeschat.json
+ *   POST /api/hermes/stop      -> kill whichever local Hermes call is currently running
+ *                                 (task, chat, or script draft) — local inference can take
+ *                                 minutes, this lets the UI's Stop button cut it short
  *   POST /api/percival/check   -> fact-check a script via Claude + web search (server/anthropic.js),
  *                                 persisted into src/data/pipeline.json
  *   POST /api/miku/generate    -> voiceover or music via ElevenLabs (server/elevenlabs.js)
@@ -254,6 +257,11 @@ async function handle(req, res, next) {
     } catch (err) {
       return sendJSON(res, 502, { ok: false, error: err.message || 'Hermes chat failed' });
     }
+  }
+
+  // --- Hermes: stop whatever's currently running (task, chat, or script draft) ---
+  if (req.method === 'POST' && url === '/api/hermes/stop') {
+    return sendJSON(res, 200, { ok: true, stopped: stopHermes() });
   }
 
   // --- Percival: fact-check a script via Claude + web search, persist to pipeline.json ---

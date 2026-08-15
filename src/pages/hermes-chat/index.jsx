@@ -4,6 +4,11 @@ import { PixelPanel, PixelButton, ArchHeader } from '../../components/ui';
 import './hermes-chat.css';
 
 const REASONING_LEVELS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra'];
+// Text-file cap for attachments — keeps a single attach from blowing up the prompt.
+// Hermes has full local filesystem access on its own regardless; this is for
+// pointing it at ONE specific file's contents as part of a message, not a bulk
+// upload channel.
+const MAX_ATTACH_BYTES = 200 * 1024;
 
 /**
  * HERMES'S HALL — a standing, multi-turn conversation with local Hermes, distinct
@@ -25,7 +30,9 @@ export default function HermesChat() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const [attachedFile, setAttachedFile] = useState(null); // { name, content } | null
   const bottomRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     let alive = true;
@@ -51,17 +58,24 @@ export default function HermesChat() {
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && !attachedFile) || sending) return;
+    // Fold the attached file's content into the actual message sent to Hermes —
+    // shown to the user as a short "📎 filename" line, but Hermes gets the full text.
+    const messageForHermes = attachedFile
+      ? `Attached file: ${attachedFile.name}\n\`\`\`\n${attachedFile.content}\n\`\`\`\n\n${text}`
+      : text;
+    const displayText = attachedFile ? `📎 ${attachedFile.name}${text ? `\n${text}` : ''}` : text;
     setInput('');
+    setAttachedFile(null);
     setSending(true);
     setError(null);
     // Optimistic: show the user's line immediately, Hermes's reply lands when it's ready.
-    setMessages((prev) => [...prev, { role: 'user', text, at: new Date().toISOString() }]);
+    setMessages((prev) => [...prev, { role: 'user', text: displayText, at: new Date().toISOString() }]);
     try {
       const res = await fetch('/api/hermes/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: messageForHermes }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || 'Hermes chat failed');
@@ -71,7 +85,34 @@ export default function HermesChat() {
     } finally {
       setSending(false);
     }
-  }, [input, sending]);
+  }, [input, sending, attachedFile]);
+
+  const handleFileChange = useCallback((e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file) return;
+    setError(null);
+    if (file.size > MAX_ATTACH_BYTES) {
+      setError(`"${file.name}" is too large to attach (${Math.round(file.size / 1024)}KB, ${Math.round(MAX_ATTACH_BYTES / 1024)}KB max) — tell Hermes its path instead, he can read it himself.`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setAttachedFile({ name: file.name, content: String(reader.result) });
+    reader.onerror = () => setError(`Couldn't read "${file.name}" — is it a text file?`);
+    reader.readAsText(file);
+  }, []);
+
+  // Local inference can take minutes — this lets you cut a reply short rather than
+  // wait out the full 10-minute server-side timeout. Kills whatever's actually
+  // running server-side (server/hermes.js's stopHermes()); handleSend's own catch
+  // block picks up the resulting "Stopped" error and clears `sending`.
+  const handleStop = useCallback(async () => {
+    try {
+      await fetch('/api/hermes/stop', { method: 'POST' });
+    } catch {
+      // best-effort — if this fails the call will still end on its own via timeout
+    }
+  }, []);
 
   return (
     <div className="page hermes-chat-page">
@@ -127,7 +168,38 @@ export default function HermesChat() {
             </p>
           )}
 
+          {attachedFile && (
+            <div className="hermes-chat__attachment">
+              <span className="font-body">📎 {attachedFile.name}</span>
+              <button
+                type="button"
+                className="hermes-chat__attachment-remove"
+                onClick={() => setAttachedFile(null)}
+                aria-label={`Remove ${attachedFile.name}`}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <div className="hermes-chat__input-row">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hermes-chat__file-input"
+              onChange={handleFileChange}
+              disabled={sending}
+            />
+            <PixelButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={sending}
+              title="Attach a text file to your next message"
+            >
+              📎
+            </PixelButton>
             <textarea
               className="hermes-chat__input font-body"
               rows={2}
@@ -142,9 +214,15 @@ export default function HermesChat() {
                 }
               }}
             />
-            <PixelButton type="button" onClick={handleSend} disabled={sending || !input.trim()}>
-              {sending ? 'Sending…' : 'Send'}
-            </PixelButton>
+            {sending ? (
+              <PixelButton type="button" variant="crimson" onClick={handleStop}>
+                Stop
+              </PixelButton>
+            ) : (
+              <PixelButton type="button" onClick={handleSend} disabled={!input.trim() && !attachedFile}>
+                Send
+              </PixelButton>
+            )}
           </div>
         </PixelPanel>
       </div>

@@ -67,6 +67,17 @@ Kept up to date at the end of every session (see the End-of-session rule in
     when the backend had actually already succeeded. `vite.config.js` now excludes
     `src/data/**` from the watcher.
 
+- **2026-08-15** — **Stop button** for local Hermes calls, in both Hermes's Hall and
+  the Editor's task panel. Local inference can take minutes; this kills the running
+  `hermes` child process (`server/hermes.js`'s `stopHermes()`, `POST /api/hermes/stop`)
+  instead of making you wait out the full 10-minute server-side timeout.
+- **2026-08-15** — **File attach** in Hermes's Hall (📎 button). Reads a text file
+  client-side and folds its contents into the message sent to Hermes — shown to the
+  user as a short "📎 filename" line, full text goes to the model. Capped at 200KB;
+  Hermes has full filesystem access on its own regardless, so this is for pointing it
+  at one file's contents inline, not a bulk upload channel. Verified live: attached a
+  file with a planted "secret word," Hermes read it back correctly.
+
 ## 🚧 In progress
 
 - Nothing actively in flight as of 2026-08-15.
