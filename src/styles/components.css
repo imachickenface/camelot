@@ -1,0 +1,278 @@
+/* ============================================================
+   CAMELOT — SHARED COMPONENT STYLES
+   TabNav, Torch, StatusLamp, WaxSealDialog, Portrait, QRune.
+   ============================================================ */
+
+/* ---- Left banner rail (TabNav) --------------------------- */
+.tabnav {
+  flex: 0 0 var(--nav-w);
+  width: var(--nav-w);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 0 12px;
+  background-color: #120f1c;
+  border-right: var(--px) solid var(--void-black);
+  box-shadow: inset -6px 0 14px rgba(0, 0, 0, 0.6), 4px 0 0 rgba(0, 0, 0, 0.5);
+  z-index: var(--z-nav);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.tabnav__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px 14px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid var(--stone-edge-dark);
+}
+.tabnav__crown {
+  color: var(--aged-gold);
+  filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.5));
+}
+.tabnav__title {
+  font-size: 42px;
+  line-height: 1;
+  color: var(--aged-gold);
+  text-shadow: 2px 2px 0 var(--void-black);
+}
+.tabnav__sub {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--ghost-grey);
+}
+.tabnav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 12px;
+  flex: 1 1 auto;
+}
+
+.tab-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 46px;
+  padding: 12px 10px 18px; /* extra bottom room for the pennant notch */
+  text-decoration: none;
+  color: var(--parchment);
+  background: linear-gradient(180deg, var(--royal-purple), var(--purple-dark));
+  border: 3px solid var(--void-black);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.05);
+  transition: filter 0.15s, background 0.15s;
+}
+.tab-banner:hover {
+  filter: brightness(1.12) drop-shadow(0 0 6px rgba(201, 162, 39, 0.55));
+}
+.tab-banner.is-active {
+  background: linear-gradient(180deg, var(--aged-gold), var(--gold-dim));
+  color: var(--void-black);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.28);
+  filter: drop-shadow(0 0 8px rgba(232, 212, 139, 0.6));
+}
+.tab-banner__label {
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 9px;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.tab-banner__input {
+  width: 100%;
+  padding: 4px;
+  font-size: 9px;
+  color: var(--pale-gold);
+  background: var(--void-black);
+  border: 2px solid var(--aged-gold);
+  outline: none;
+}
+.tab-banner__tools {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.tab-banner:hover .tab-banner__tools,
+.tab-banner.is-active .tab-banner__tools {
+  opacity: 1;
+}
+.tab-icon {
+  padding: 2px 3px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+.tab-icon:hover {
+  color: var(--pale-gold);
+  text-shadow: 0 0 6px rgba(232, 212, 139, 0.8);
+}
+.tab-icon--danger:hover {
+  color: var(--blood-crimson);
+}
+.tab-banner.is-active .tab-icon:hover {
+  color: var(--crimson-dark);
+  text-shadow: none;
+}
+
+.tab-add {
+  padding: 12px 10px 18px;
+  font-size: 9px;
+  color: var(--aged-gold);
+  background: var(--dungeon-stone);
+  border: 3px dashed var(--gold-dim);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, filter 0.15s, border-color 0.15s;
+}
+.tab-add:hover {
+  color: var(--pale-gold);
+  background: var(--raised-stone);
+  border-color: var(--aged-gold);
+  filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.5));
+}
+.tabnav__foot {
+  padding: 12px 16px 0;
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--ghost-grey);
+  border-top: 2px solid var(--stone-edge-dark);
+}
+
+/* ---- Torch ---------------------------------------------- */
+.torch {
+  display: inline-block;
+}
+.torch-flame {
+  transform-origin: 8px 13px;
+  animation: flicker 0.45s ease-in-out infinite alternate;
+}
+.torch-ember {
+  animation: ember-rise 1.8s linear infinite;
+}
+
+/* ---- Status lamp ---------------------------------------- */
+.status-lamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-lamp__crown {
+  transition: color 0.2s, filter 0.2s, opacity 0.2s;
+}
+.status-lamp.is-active .status-lamp__crown {
+  color: var(--aged-gold);
+  filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.75));
+}
+.status-lamp.is-dim .status-lamp__crown {
+  color: var(--ghost-grey);
+  opacity: 0.55;
+}
+.status-lamp__text {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.status-lamp.is-active .status-lamp__text {
+  color: var(--pale-gold);
+}
+.status-lamp.is-dim .status-lamp__text {
+  color: var(--ghost-grey);
+}
+
+/* ---- Wax-seal dialog ------------------------------------ */
+.wax-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 4, 9, 0.74);
+  z-index: var(--z-dialog);
+  animation: fade-in 0.12s ease;
+}
+.wax-dialog {
+  width: min(440px, 92vw);
+  padding: 42px 28px 26px;
+  text-align: center;
+}
+.wax-seal {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: seal-press 0.4s ease;
+}
+.wax-seal__blob {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 40% 34%, var(--crimson-bright), var(--blood-crimson) 55%, var(--crimson-dark));
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+}
+.wax-seal__crown {
+  position: relative;
+  z-index: 1;
+  color: var(--crimson-dark);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5));
+}
+.wax-dialog__title {
+  margin: 6px 0 10px;
+  font-size: 28px;
+  color: var(--pale-gold);
+}
+.wax-dialog__msg {
+  margin-bottom: 20px;
+  font-size: 19px;
+  line-height: 1.3;
+  color: var(--parchment);
+}
+.wax-dialog__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ---- Portrait ------------------------------------------- */
+.portrait {
+  display: inline-block;
+  line-height: 0;
+}
+.portrait-monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 38%, var(--raised-stone), var(--dungeon-stone));
+  color: var(--aged-gold);
+  text-shadow: 2px 2px 0 var(--void-black);
+}
+
+/* ---- Floating "?" rune ---------------------------------- */
+.q-rune {
+  display: inline-block;
+  font-size: 28px;
+  color: var(--pale-gold);
+  text-shadow: 0 0 8px rgba(232, 212, 139, 0.7), 2px 2px 0 var(--void-black);
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+/* ---- Excalibur glow state ------------------------------- */
+.excalibur-glowing {
+  animation: excalibur-glow 0.9s ease-in-out;
+}

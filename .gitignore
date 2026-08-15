@@ -1,25 +1,17 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-build/
-*.tsbuildinfo
-
-# Local runtime data (saved agents, etc.)
-apps/server/data/agents.json
-
-# Logs
-*.log
-npm-debug.log*
-
-# Environment files (secrets / API keys — added when real tools are wired up)
-.env
-.env.*
-!.env.example
-
-# Editor / OS noise
+node_modules
+dist
 .DS_Store
-Thumbs.db
-.vscode/
-.idea/
+*.log
+.vite
+
+# Higgsfield API credentials — never commit
+.env
+
+# Uploaded portraits are user state, but keep the folder + defaults tracked.
+# (Uncomment the next line if you don't want to version custom uploads.)
+# src/assets/portraits/*
+# !src/assets/portraits/arthur.svg
+# !src/assets/portraits/vacant-silhouette.svg
+
+# Generated audio clips (Miku/Teto) — pure output, not worth versioning.
+src/assets/audio/

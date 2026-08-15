@@ -1,0 +1,104 @@
+{
+  "scout": {
+    "subreddits": [],
+    "lastRunAt": "2026-07-22T23:05:52.168Z",
+    "candidates": []
+  },
+  "crab": {
+    "lastRunAt": "2026-07-22T22:39:44.811Z",
+    "assets": [],
+    "visual": null
+  },
+  "arthur": {
+    "lastRunAt": "2026-07-22T23:31:55.263Z",
+    "steps": [
+      {
+        "stage": "scout",
+        "ok": true,
+        "note": "skipped — idea supplied manually"
+      },
+      {
+        "stage": "hagrid",
+        "ok": true,
+        "note": "script drafted, 8 beats"
+      },
+      {
+        "stage": "percival",
+        "ok": true,
+        "note": "0 claim(s) checked, none disputed"
+      },
+      {
+        "stage": "miku",
+        "ok": false,
+        "note": "Status code: 402\nBody: {\n  \"detail\": {\n    \"type\": \"payment_required\",\n    \"code\": \"paid_plan_required\",\n    \"message\": \"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.\",\n    \"status\": \"payment_required\",\n    \"request_id\": \"d209f11744385605aaebfc8bd258af1e\"\n  }\n}"
+      },
+      {
+        "stage": "teto",
+        "ok": true,
+        "note": "sound conjured for \"Hook\""
+      },
+      {
+        "stage": "merlin",
+        "ok": false,
+        "note": "Not enough credits"
+      }
+    ],
+    "error": "Not enough credits"
+  },
+  "hagrid": {
+    "idea": "A lighthouse keeper realizes the light has been guiding something other than ships.",
+    "lastRunAt": "2026-07-22T23:31:39.446Z",
+    "script": "For thirty years, old Thomas kept the light burning to guide ships home. He never once wondered what else might be watching from the dark.\n\nThe storms came often on this coast, and Thomas knew every one by name. But the night the fog rolled in thick as wool, no ship's horn answered his beam. Only silence. And then... a sound. Not the creak of a hull. Something deeper. Something that breathed.\n\nHe climbed the tower stairs, lantern in hand, and swept the great light across the black water. That's when he saw them. Eyes. Dozens of them, rising just beneath the waves, drawn to the glow like moths to a candle. Not ships. Never ships.\n\nFor thirty years he thought he'd been saving sailors. But the log books told a different tale — vessels that vanished on the calmest nights, always when the light shone brightest. He hadn't been guiding boats to safety. He'd been calling something up from the deep, ringing a dinner bell across the sea.\n\nThomas reached for the switch. His hand trembled over the great lamp. Turn it off, and the ships would wreck on the rocks. Leave it on, and feed the hungry dark.\n\nBut it was already too late. Below him, the water began to rise. And the eyes... the eyes were climbing the stairs.\n\nSo if you ever sail a lonely coast and see a lighthouse burning bright — ask yourself who lit it. And what, exactly, it's meant to guide home.",
+    "shotList": [
+      {
+        "beat": "Hook",
+        "durationSec": 8,
+        "prompt": "A weathered old lighthouse keeper with a thick grey beard stands atop a tall stone lighthouse at dusk, warm beam sweeping over dark churning ocean, cinematic wide shot, moody teal and amber lighting, film grain"
+      },
+      {
+        "beat": "Setup",
+        "durationSec": 10,
+        "prompt": "Interior of a lighthouse lamp room, brass gears turning, giant rotating Fresnel lens glowing warm, keeper polishing the glass, cozy but isolated, warm firelight glow, atmospheric dust in air"
+      },
+      {
+        "beat": "Rising action",
+        "durationSec": 12,
+        "prompt": "Thick grey fog rolling over a black silent sea at night, no ships visible, the lighthouse beam cutting through mist, eerie stillness, faint ripples on dark water, unsettling cinematic mood"
+      },
+      {
+        "beat": "Discovery",
+        "durationSec": 12,
+        "prompt": "View from the lighthouse gallery looking down at the ocean, dozens of glowing pale eyes rising just beneath the black waves, drawn toward the beam, horror atmosphere, bioluminescent glow, dread"
+      },
+      {
+        "beat": "The twist",
+        "durationSec": 12,
+        "prompt": "Close-up of old handwritten log books lit by lantern, pages listing vanished ships, keeper's shaking weathered hands turning pages, shadowy lamp room, ominous discovery, warm candlelight"
+      },
+      {
+        "beat": "Dilemma",
+        "durationSec": 10,
+        "prompt": "Extreme close-up of an old man's trembling hand hovering over a large brass light switch, sweat on his brow, glowing lamp reflected in his fearful eyes, tense cinematic lighting"
+      },
+      {
+        "beat": "Climax",
+        "durationSec": 10,
+        "prompt": "Dark seawater surging up a spiral lighthouse staircase, glowing eyes and slick shapes climbing the steps, keeper backing away in terror, dripping walls, horror lighting, dynamic motion"
+      },
+      {
+        "beat": "Payoff",
+        "durationSec": 10,
+        "prompt": "A distant lighthouse burning brightly alone on a jagged rocky coast at night, seen from a small boat on dark water, ominous inviting glow, foreboding cinematic wide shot, fog and stars"
+      }
+    ]
+  },
+  "percival": {
+    "lastRunAt": "2026-07-22T23:31:41.814Z",
+    "claims": []
+  },
+  "teto": {
+    "text": "A weathered old lighthouse keeper with a thick grey beard stands atop a tall stone lighthouse at dusk, warm beam sweeping over dark churning ocean, cinematic wide shot, moody teal and amber lighting, film grain",
+    "lastRunAt": "2026-07-22T23:31:44.240Z",
+    "audioUrl": "/assets/audio/teto-sfx-1784763104239.mp3"
+  }
+}

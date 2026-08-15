@@ -1,22 +1,25 @@
 {
   "name": "camelot",
-  "version": "0.1.0",
   "private": true,
-  "description": "Camelot — a modular content-creation engine, organized around a medieval Round Table of agents.",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Camelot — The Round Table faceless content automation dashboard (UI shell). Dark gothic pixel-art.",
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail --names \"server,web\" --prefix-colors \"yellow,cyan\" \"npm run dev --workspace @camelot/server\" \"npm run dev --workspace @camelot/web\"",
-    "build": "npm run build --workspace @camelot/web",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "start": "npm run start --workspace @camelot/server"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "gen:portraits": "node scripts/gen-portraits.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.113.0",
+    "@elevenlabs/elevenlabs-js": "^2.59.0",
+    "@higgsfield/client": "^0.2.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.0"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
-  },
-  "engines": {
-    "node": ">=20"
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
   }
 }
