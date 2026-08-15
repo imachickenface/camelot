@@ -4,5 +4,6 @@
   "customCursor": true,
   "villageMirrorsTable": true,
   "seatCount": 12,
-  "lastTab": "round-table"
+  "lastTab": "round-table",
+  "hermesReasoningEffort": "low"
 }

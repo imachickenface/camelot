@@ -2,18 +2,28 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useCamelot } from '../state/CamelotContext';
 import { PixelPanel, PixelButton, ArchHeader } from '../components/ui';
 import Torch from '../components/Torch';
+import HermesChat from './hermes-chat/index.jsx';
 
 /**
- * Generic page for a user-created custom tab. Renders a themed "empty hall".
+ * Generic page for a user-created custom tab. Renders a themed "empty hall", unless
+ * the tab's `contentRef` matches an entry below — then that component mounts instead.
  *
- * HOOK: custom tab content mounting — when a tab entry gains a `contentRef`, resolve
- * it to a component here (e.g. a registry lookup) instead of the empty-hall placeholder.
+ * HOOK: custom tab content mounting — add new entries here as more get built.
  */
+const CONTENT_COMPONENTS = {
+  'hermes-chat': HermesChat,
+};
+
 export default function CustomTab() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { tabs } = useCamelot();
   const tab = tabs.find((t) => t.id === id);
+
+  if (tab && tab.contentRef && CONTENT_COMPONENTS[tab.contentRef]) {
+    const Content = CONTENT_COMPONENTS[tab.contentRef];
+    return <Content />;
+  }
 
   if (!tab) {
     return (

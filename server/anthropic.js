@@ -1,7 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 /**
- * Hagrid's connection to the Anthropic API — a scouted idea goes in, a script
+ * The cloud-engine path for Hermes's scriptwriting duties (server/hermes.js is the
+ * local alternative — see seat-07's `engine` field) — a scouted idea goes in, a script
  * and a Merlin-ready shot list come out. Also used by Percival for fact-checking.
  */
 
@@ -66,7 +67,7 @@ export async function draftScript(idea) {
     messages: [
       {
         role: 'user',
-        content: `You are Hagrid, the Keeper of Tales for a faceless YouTube channel. Turn the
+        content: `You are standing in for the Round Table's scriptwriting seat, for a faceless YouTube channel. Turn the
 following scouted idea into a short narration script (60-90 seconds spoken aloud) with a strong
 hook in the first line, and break it into a shot list of 5-15 second beats. Each beat needs a
 vivid visual prompt an AI video generator (Kling/Veo/Sora-style) can render.
@@ -78,7 +79,7 @@ Idea: ${idea}`,
 
   const toolUse = message.content.find((block) => block.type === 'tool_use');
   if (!toolUse) {
-    throw new Error('Hagrid returned no script');
+    throw new Error('No script returned');
   }
   return toolUse.input;
 }

@@ -140,7 +140,7 @@ export function CamelotProvider({ children }) {
 
   // HOOK: agent task execution — a future pipeline runner plugs in here.
   // Arthur (seat-01), Merlin (seat-12), Percival (seat-02), Miku (seat-03),
-  // Teto (seat-04), The Mighty Crab (seat-05), Sir Scout (seat-06), and Hagrid
+  // Teto (seat-04), The Mighty Crab (seat-05), Sir Scout (seat-06), and Hermes
   // (seat-07) are wired for real. Every other seat is still a stub until its
   // own pipeline is built.
   const runAgentTask = useCallback(async (id, task) => {
@@ -213,13 +213,15 @@ export function CamelotProvider({ children }) {
       return data;
     }
     if (id === 'seat-07') {
-      const res = await fetch('/api/hagrid/draft', {
+      // Hermes: free-form, unrestricted — `task` is whatever text the panel sends,
+      // no shape requirement. Runs locally with full shell/file/browser/MCP access.
+      const res = await fetch('/api/hermes/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea: task }),
+        body: JSON.stringify({ task }),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || 'draft failed');
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Hermes run failed');
       return data;
     }
     if (id === 'seat-06') {
@@ -351,11 +353,13 @@ export function CamelotProvider({ children }) {
 
   const idRef = useRef(0);
   const addTab = useCallback(
-    (name = 'New Hall') => {
+    (name = 'New Hall', contentRef = null) => {
       // unique id even if two are added within the same millisecond
       const id = `tab-${Date.now()}-${idRef.current++}`;
-      // future-proofing: each custom tab carries id/name/type/contentRef
-      const entry = { id, name, type: 'custom', contentRef: null };
+      // future-proofing: each custom tab carries id/name/type/contentRef —
+      // contentRef opts into a specific mounted component (see CustomTab.jsx's
+      // registry); null keeps the default empty-hall placeholder.
+      const entry = { id, name, type: 'custom', contentRef };
       mutateTabs((prev) => [...prev, entry]);
       return id;
     },

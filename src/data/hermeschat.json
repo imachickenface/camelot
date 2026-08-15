@@ -1,0 +1,64 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "text": "My favorite number is 42. Reply with exactly: Noted, 42.",
+      "at": "2026-08-15T11:38:16.261Z"
+    },
+    {
+      "role": "hermes",
+      "text": "Noted, 42.",
+      "at": "2026-08-15T11:38:16.261Z"
+    },
+    {
+      "role": "user",
+      "text": "what is my favorite number?",
+      "at": "2026-08-15T11:49:47.638Z"
+    },
+    {
+      "role": "hermes",
+      "text": "Your favorite number is 42.",
+      "at": "2026-08-15T11:49:47.638Z"
+    },
+    {
+      "role": "user",
+      "text": "hello",
+      "at": "2026-08-15T11:50:12.328Z"
+    },
+    {
+      "role": "hermes",
+      "text": "Hey! What's up? How can I help you today?",
+      "at": "2026-08-15T11:50:12.328Z"
+    },
+    {
+      "role": "user",
+      "text": "what is your name and what can you do?",
+      "at": "2026-08-15T11:57:03.684Z"
+    },
+    {
+      "role": "hermes",
+      "text": "I'm Hermes Agent — an AI assistant built by Nous Research (running on a Qwen-based model here). I'm a working terminal agent, not just a chatbot, so a lot of what I \"can do\" is actually *doing* things on your machine.\r\n\r\nHere's what I'm good at:\r\n\r\nGeneral help\r\n- Answering questions, explaining concepts, summarizing and analyzing information\r\n- Writing and editing code across many languages\r\n- Creative work (drafts, rewrites, naming, brainstorming)\r\n\r\nHands-on execution (real tools, not just talk)\r\n- Run shell commands, builds, installs, tests, and git on this host\r\n- Create, read, and edit files\r\n- Search across files and content\r\n- Web lookups and fetching data\r\n- Manage background processes and long-running tasks\r\n- Turn-to-turn memory, skills, and scheduled jobs\r\n\r\nSo whether you want me to explain something, write a script, debug a project, batch-process files, or dig through a codebase — I can just do it and show you the real result rather than describe what I'd do.\r\n\r\nWant me to do something specific? Point me at a task and I'll get started.",
+      "at": "2026-08-15T11:57:03.684Z"
+    },
+    {
+      "role": "user",
+      "text": "write hello world in a python format",
+      "at": "2026-08-15T12:07:03.544Z"
+    },
+    {
+      "role": "hermes",
+      "text": "```python\r\nprint(\"hello world\")\r\n```",
+      "at": "2026-08-15T12:07:03.544Z"
+    },
+    {
+      "role": "user",
+      "text": "Attached file: test-note.txt\n```\nThis is a test note.\nLine two: the secret word is banana.\n```\n\nWhat is the secret word in the attached file? Reply with exactly one word.",
+      "at": "2026-08-15T12:13:10.494Z"
+    },
+    {
+      "role": "hermes",
+      "text": "banana",
+      "at": "2026-08-15T12:13:10.494Z"
+    }
+  ]
+}

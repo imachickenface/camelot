@@ -1,3 +1,10 @@
 {
-  "tabs": []
+  "tabs": [
+    {
+      "id": "tab-1786793670383-0",
+      "name": "Hermes",
+      "type": "custom",
+      "contentRef": "hermes-chat"
+    }
+  ]
 }

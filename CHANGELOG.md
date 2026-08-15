@@ -3,6 +3,104 @@
 All notable changes to **Camelot** are recorded here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.9.5] — 2026-08-15 — Stop button and file attach for local Hermes
+
+### Added
+- **Stop button** for local Hermes calls — Hermes's Hall and the Editor's task panel
+  both swap Send for a Stop button while a call is in flight. `server/hermes.js` now
+  tracks the in-flight child process (`currentProc`) and exposes `stopHermes()`,
+  wired to a new `POST /api/hermes/stop` route. Local inference can run for minutes;
+  this lets you cut a bad or unwanted reply short instead of waiting out the full
+  10-minute server-side timeout.
+- **File attach** (📎) in Hermes's Hall — reads a text file client-side (200KB cap)
+  and folds its contents into the message actually sent to Hermes, while the chat
+  log shows just a short "📎 filename" line. Verified live: attached a file with a
+  planted secret word, Hermes read it back correctly from the attachment.
+
+## [0.9.4] — 2026-08-15 — Hermes's Hall: a persistent chat, plus real bugs found running it live
+
+### Added
+- **Hermes's Hall** (`src/pages/hermes-chat/`) — a standing, multi-turn conversation
+  with local Hermes, distinct from the Editor's one-shot task panel. Continues one
+  Hermes Agent session across messages (`hermes -z --continue camelot-hermes-hall`) —
+  genuine conversational memory, not history replayed into the prompt each time.
+  Verified live: asked a fact several turns earlier, correctly recalled it later.
+  Transcript persists to `src/data/hermeschat.json`.
+- **This is the first real use of custom-tab content mounting** — previously just a
+  `// HOOK:` comment. `CustomTab.jsx` now has a `contentRef` → component registry;
+  `CamelotContext`'s `addTab(name, contentRef)` takes an optional second argument.
+  Opened via a new button in the Editor's Hermes panel, which reuses the existing
+  Hall instead of creating duplicates on repeat clicks.
+- **Reasoning-effort setting**, adjustable from within the Hall itself
+  (`none`/`minimal`/`low`/.../`ultra`, stored as `settings.json`'s
+  `hermesReasoningEffort`, default `"low"`). Applies to every Hermes call — Qwen3.8
+  does hidden chain-of-thought before each reply by default, which costs real
+  generation time even on trivial prompts; this is the main speed lever available
+  short of changing the model or hardware.
+
+### Fixed
+- **`server/hermes.js` never actually read `HERMES_BIN` from `.env`.** It captured
+  `process.env.HERMES_BIN` in a module-level `const`, but ES module imports are
+  hoisted and evaluate before `vite.config.js`'s `defineConfig` callback loads `.env`
+  into `process.env` — so the const permanently captured `undefined` and fell back to
+  the literal string `"hermes"` (not on PATH outside the venv), failing every call
+  with `spawn hermes ENOENT`. `anthropic.js`/`elevenlabs.js` already avoid this by
+  reading `process.env` lazily inside functions; `hermes.js` now does too.
+- **Ollama model registration kept breaking under disk pressure.** Repeated failed
+  `ollama create` retries (each one writes a full new ~17.7GB blob rather than
+  reusing an identical prior one) left orphaned duplicate blobs on disk, driving free
+  space down to ~28GB and causing the *next* retry to fail too — a self-reinforcing
+  loop. Cleaned up orphaned blobs and the broken manifest, freed disk to ~91GB, model
+  registered cleanly on retry.
+- **Concurrent chat messages could race on the same Hermes session.** Sending a
+  second message before the first had replied (easy to do — see the reload bug
+  below) meant two `--continue camelot-hermes-hall` calls running at once against
+  the same session. `chatWithHermes` now serializes on a promise queue.
+- **Vite was watching `src/data/*.json` as source code.** Every agent-task run or
+  chat message writes to a file under `src/data/`, which Vite's dev server also
+  watches by default — triggering a full page reload right as the response landed,
+  silently wiping the "sending…" UI state. This read as "Hermes is stuck" when the
+  backend had actually already succeeded (confirmed via the persisted file each
+  time), and very likely caused users to resend, which is what triggered the
+  concurrency bug above. `vite.config.js` now excludes `src/data/**` from the watcher.
+
+### Investigated, not fixed
+- **`rocblaslt` fails to load its tuned kernel library for this GPU's exact
+  architecture code** (`TensileLibrary_lazy_gfx1201.dat`, RX 9070 XT / RDNA4). Ollama
+  IS using ROCm (confirmed in `server.log`, not a slower fallback path) — this is a
+  narrower issue in one acceleration layer, likely a version gap since this GPU is
+  very new hardware. The file itself isn't corrupt (correct size vs. sibling
+  architectures). Probably costs some throughput; not fixed here since the likely
+  remedy is updating Ollama itself, a software-install decision left to the owner.
+
+## [0.9.3] — 2026-08-15 — Hagrid becomes Hermes: a local, unrestricted engine option
+
+### Added
+- **`"engine"` field on every seat but Arthur** (`"cloud"` | `"hermes"`), editable in
+  the Agent Editor. Cloud is the existing Anthropic/ElevenLabs/Higgsfield path; Hermes
+  runs the task locally through a Hermes Agent install on this machine instead — no
+  API key, but slower (local model inference).
+- **`server/hermes.js`** — the local-engine integration. Shells out to the `hermes`
+  CLI (`hermes -z "<task>" --yolo`, configurable via `HERMES_BIN`/`HERMES_CWD` in
+  `.env`). `--yolo` auto-approves every tool call Hermes makes, since this is a
+  non-interactive call with no terminal for it to prompt in.
+- **`POST /api/hermes/run`** — new route, replaces `/api/hagrid/draft`. Runs any
+  free-form task through local Hermes and persists the result to `pipeline.json`.
+
+### Changed
+- **Seat-07 renamed Hagrid → Hermes**, and reimagined, not just relabeled: was
+  scriptwriting-only, is now a general-purpose, freely-tasked local agent with full
+  shell/file/browser/MCP access — deliberately unrestricted, on the owner's explicit
+  request. The Agent Editor's seat-07 panel changed from an "idea → script" box to a
+  free-form task box, with that capability spelled out in the UI, not hidden.
+- **Arthur's full-pipeline run still works end-to-end.** When it reaches the
+  scriptwriting stage, it now checks seat-07's `engine` and calls either
+  `draftScript()` (cloud) or the new `draftScriptViaHermes()` (local) — both return
+  the same `{ script, shotList }` shape, so Percival/Teto/Merlin downstream don't
+  need to know which one ran.
+- `pipeline.json`'s `hagrid` key is now written as `hermes` going forward (old
+  `hagrid` entries from prior runs are just inert leftover data, not migrated).
+
 ## [0.9.2] — 2026-08-15 — Migrated into the `imachickenface/camelot` repo, retired the old monorepo
 
 ### Changed
