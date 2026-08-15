@@ -1,0 +1,370 @@
+/* ============================================================
+   AGENT EDITOR — "The Scribe's Chamber"
+   Dark carved stone panels with parchment-toned form fields.
+   Scoped under .editor-* so nothing collides with hub/village.
+   ============================================================ */
+
+.editor-page {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.editor-title {
+  width: min(520px, 90%);
+  margin: 0 auto 28px;
+  font-size: 22px;
+  letter-spacing: 2px;
+}
+
+.editor-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------- LEFT: seat roll ---------------- */
+.editor-roll {
+  padding: 16px 12px 20px;
+}
+.editor-roll__heading {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-align: center;
+  margin: 4px 0 14px;
+}
+.editor-roll__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.editor-seat-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--dungeon-stone);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--stone-edge-light) var(--stone-edge-dark) var(--stone-edge-dark)
+    var(--stone-edge-light);
+  color: var(--parchment);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.editor-seat-row:hover {
+  background: var(--raised-stone);
+  border-color: var(--pale-gold) var(--gold-dim) var(--gold-dim) var(--pale-gold);
+}
+.editor-seat-row.is-selected {
+  background: var(--raised-stone);
+  border-color: var(--pale-gold) var(--gold-dark) var(--gold-dark) var(--pale-gold);
+  box-shadow: 0 0 0 2px var(--void-black), var(--glow-gold);
+}
+.editor-seat-row:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--void-black), 0 0 0 4px var(--pale-gold);
+}
+
+.editor-seat-row__info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.editor-seat-row__name {
+  font-size: 18px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--pale-gold);
+}
+.editor-seat-row__meta {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+/* ---------------- RIGHT: the form ---------------- */
+.editor-form-panel {
+  padding: 20px 26px 26px;
+}
+.editor-form__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--stone-edge-dark);
+  font-size: 11px;
+}
+
+.editor-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---- Portrait row ---- */
+.editor-portrait-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.editor-portrait-frame {
+  width: 96px;
+  height: 96px;
+  flex: none;
+}
+.editor-portrait-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.editor-portrait-controls {
+  flex: 1 1 220px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.editor-file-input {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--parchment);
+  background: var(--parchment-field);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--stone-edge-dark) var(--stone-edge-light) var(--stone-edge-light)
+    var(--stone-edge-dark);
+  padding: 6px 8px;
+  cursor: pointer;
+  max-width: 100%;
+}
+.editor-file-input::file-selector-button {
+  font-family: var(--font-label);
+  font-size: 9px;
+  color: var(--void-black);
+  background: var(--aged-gold);
+  border: 2px solid var(--gold-dark);
+  padding: 6px 8px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+.editor-file-input::file-selector-button:hover {
+  background: var(--pale-gold);
+}
+
+.editor-hint {
+  font-size: 15px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.editor-scout-results {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.editor-scout-results li {
+  font-size: 16px;
+  line-height: 1.3;
+}
+.editor-scout-results a {
+  text-decoration: underline;
+}
+
+/* ---- Generic field layout ---- */
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.editor-field-label {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+/* Parchment-toned inputs: muted parchment bg, dark text, chunky pixel borders. */
+.editor-input,
+.editor-textarea {
+  font-size: 18px;
+  color: var(--void-black);
+  background-color: var(--parchment-field);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--stone-edge-dark) var(--stone-edge-light) var(--stone-edge-light)
+    var(--stone-edge-dark);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.25);
+  padding: 8px 10px;
+  border-radius: 0; /* never rounded — chunky pixel edges only */
+  resize: vertical;
+  width: 100%;
+}
+.editor-input::placeholder,
+.editor-textarea::placeholder {
+  color: var(--parchment-dark);
+  opacity: 0.9;
+}
+.editor-input:focus,
+.editor-textarea:focus {
+  outline: none;
+  border-color: var(--gold-dark) var(--pale-gold) var(--pale-gold) var(--gold-dark);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.25), 0 0 0 2px var(--void-black), var(--glow-gold);
+}
+.editor-textarea {
+  min-height: 74px;
+  line-height: 1.3;
+  font-size: 17px;
+}
+
+/* Blackletter live name preview, sits above the name field */
+.editor-name-preview {
+  font-size: 26px;
+  color: var(--aged-gold);
+  line-height: 1.1;
+  min-height: 1.2em;
+  overflow-wrap: anywhere;
+  text-shadow: 0 0 10px rgba(201, 162, 39, 0.25);
+}
+
+/* ---- Status toggle ---- */
+.editor-status-field {
+  gap: 8px;
+}
+.editor-status-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  padding: 8px 14px;
+  background: var(--purple-dark);
+  color: var(--ghost-grey);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--purple-light) var(--stone-edge-dark) var(--stone-edge-dark) var(--purple-light);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.editor-status-toggle__knob {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--ghost-grey);
+  background: var(--void-black);
+  border: 2px solid var(--stone-edge-dark);
+  transition: color 0.15s;
+}
+.editor-status-toggle.is-active {
+  background: var(--gold-dark);
+  color: var(--void-black);
+  border-color: var(--pale-gold) var(--gold-dark) var(--gold-dark) var(--pale-gold);
+  box-shadow: 0 0 0 2px var(--void-black), var(--glow-gold);
+}
+.editor-status-toggle.is-active .editor-status-toggle__knob {
+  color: var(--aged-gold);
+  background: var(--void-black);
+}
+.editor-status-toggle:hover {
+  filter: brightness(1.15);
+}
+.editor-status-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--void-black), 0 0 0 4px var(--pale-gold);
+}
+.editor-status-toggle__label {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+/* ---- Actions row: Revert + wax-seal Save ---- */
+.editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 22px;
+  margin-top: 6px;
+}
+
+.editor-wax-seal {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 84px;
+  height: 84px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.editor-wax-seal__blob {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 38% 32%,
+    var(--crimson-bright),
+    var(--blood-crimson) 55%,
+    var(--crimson-dark)
+  );
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6), 0 4px 0 rgba(0, 0, 0, 0.45);
+  transition: filter 0.15s;
+}
+.editor-wax-seal__crown {
+  position: relative;
+  z-index: 1;
+  color: var(--pale-gold);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6));
+}
+.editor-wax-seal__text {
+  position: relative;
+  z-index: 1;
+  font-size: 9px;
+  color: var(--pale-gold);
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+}
+.editor-wax-seal:hover .editor-wax-seal__blob {
+  filter: brightness(1.15);
+}
+.editor-wax-seal:active .editor-wax-seal__blob,
+.editor-wax-seal.is-pressed .editor-wax-seal__blob {
+  animation: seal-press 0.4s ease;
+}
+.editor-wax-seal:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.5) brightness(0.8);
+}
+.editor-wax-seal:focus-visible {
+  outline: none;
+}
+.editor-wax-seal:focus-visible .editor-wax-seal__blob {
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6), 0 4px 0 rgba(0, 0, 0, 0.45), 0 0 0 4px var(--pale-gold);
+}

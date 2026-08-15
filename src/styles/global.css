@@ -1,0 +1,152 @@
+/* ============================================================
+   CAMELOT — GLOBAL BASE
+   Reset, body, tiled stone texture, custom cursor, typography,
+   scrollbars, and shared text utilities.
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--void-black);
+  /* Subtle tiled pixel-stone texture — very low contrast, must not hurt readability. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Crect width='8' height='8' fill='%230b0a12'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%23141220'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23141220'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%23070610'/%3E%3Crect x='6' y='6' width='1' height='1' fill='%23141220'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%23070610'/%3E%3C/svg%3E");
+  background-size: 16px 16px;
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: 22px;
+  line-height: 1.35;
+  letter-spacing: 0.4px;
+  -webkit-font-smoothing: none;
+  overflow: hidden; /* the app manages its own scroll regions */
+}
+
+/* Custom pixel-sword cursor (falls back to default). Toggle via <body data-cursor>. */
+body[data-cursor='sword'] {
+  cursor: url('../assets/ui/cursor-sword.svg') 1 1, auto;
+}
+body[data-cursor='sword'] button,
+body[data-cursor='sword'] a,
+body[data-cursor='sword'] [role='button'],
+body[data-cursor='sword'] .clickable {
+  cursor: url('../assets/ui/cursor-sword.svg') 1 1, pointer;
+}
+
+/* Pixel art must never be smoothed. */
+img,
+svg,
+canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Headings: blackletter gothic */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-title);
+  color: var(--aged-gold);
+  font-weight: normal;
+  margin: 0;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+p {
+  margin: 0 0 0.6em;
+}
+
+a {
+  color: var(--pale-gold);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--aged-gold);
+  text-shadow: var(--glow-gold);
+}
+
+button {
+  font-family: var(--font-label);
+  color: inherit;
+}
+
+::selection {
+  background: var(--aged-gold);
+  color: var(--void-black);
+}
+
+/* ---- Chunky pixel scrollbars ---- */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+::-webkit-scrollbar-track {
+  background: var(--void-black);
+  border-left: 2px solid var(--dungeon-stone);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--royal-purple);
+  border: 3px solid var(--void-black);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--aged-gold);
+}
+* {
+  scrollbar-color: var(--royal-purple) var(--void-black);
+}
+
+/* ---- Text utilities ---- */
+.font-title {
+  font-family: var(--font-title);
+}
+.font-label {
+  font-family: var(--font-label);
+}
+.font-body {
+  font-family: var(--font-body);
+}
+.t-gold {
+  color: var(--aged-gold);
+}
+.t-pale {
+  color: var(--pale-gold);
+}
+.t-ghost {
+  color: var(--ghost-grey);
+}
+.t-crimson {
+  color: var(--blood-crimson);
+}
+.t-parchment {
+  color: var(--parchment);
+}
+.t-center {
+  text-align: center;
+}
+.t-upper {
+  text-transform: uppercase;
+}
+
+/* Screen-reader-only helper */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

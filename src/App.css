@@ -1,0 +1,86 @@
+/* ============================================================
+   CAMELOT — APP LAYOUT
+   ============================================================ */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.app-main {
+  position: relative;
+  flex: 1 1 auto;
+  height: 100vh;
+  overflow: auto;
+  z-index: var(--z-content);
+  min-width: 0;
+}
+
+/* Generic page wrapper */
+.page {
+  min-height: 100%;
+  padding: 24px;
+}
+.page--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Loading / boot screen ---- */
+.loading-hall {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+.loading-hall__crest {
+  font-size: 64px;
+  color: var(--aged-gold);
+  text-shadow: 0 0 18px rgba(201, 162, 39, 0.4);
+  animation: glow-pulse 2.2s ease-in-out infinite;
+}
+.loading-hall__msg {
+  font-size: 11px;
+  color: var(--ghost-grey);
+}
+
+/* ---- Empty custom-hall placeholder ---- */
+.empty-hall-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.empty-hall-torches {
+  display: flex;
+  gap: 320px;
+  margin-bottom: -20px;
+  z-index: 2;
+}
+.empty-hall {
+  width: min(560px, 90vw);
+  padding: 40px 32px 34px;
+  text-align: center;
+}
+.empty-hall__arch {
+  margin: -54px auto 20px;
+  width: 70%;
+  font-size: 26px;
+}
+.empty-hall__line {
+  font-size: 26px;
+  color: var(--parchment);
+  margin-bottom: 14px;
+}
+.empty-hall__hint {
+  font-size: 10px;
+  line-height: 1.8;
+}
+.empty-hall h2 {
+  font-size: 34px;
+  margin-bottom: 12px;
+}

@@ -1,0 +1,293 @@
+/* ============================================================
+   CAMELOT — PIXEL UI KIT
+   Reusable chunky pixel-art building blocks. NO rounded corners,
+   NO smooth material shadows. Everything is stepped bevels and
+   stone + torchlight. Use these classes anywhere.
+   ============================================================ */
+
+/* ---- Carved stone panel ---------------------------------- */
+.pixel-panel {
+  position: relative;
+  background-color: var(--panel-bg);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.25));
+  border-style: solid;
+  border-width: var(--px);
+  border-color: var(--stone-edge-light) var(--stone-edge-dark) var(--stone-edge-dark)
+    var(--stone-edge-light);
+  box-shadow: 0 0 0 2px var(--void-black), inset 0 0 0 2px rgba(0, 0, 0, 0.35),
+    0 8px 0 0 rgba(0, 0, 0, 0.35);
+  image-rendering: pixelated;
+}
+.pixel-panel--raised {
+  background-color: var(--raised-stone);
+}
+.pixel-panel--flush {
+  box-shadow: 0 0 0 2px var(--void-black), inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+/* ---- Chunky pixel button --------------------------------- */
+.pixel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-label);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+  color: var(--parchment);
+  background-color: var(--raised-stone);
+  border-style: solid;
+  border-width: var(--px);
+  border-color: var(--stone-edge-light) var(--stone-edge-dark) var(--stone-edge-dark)
+    var(--stone-edge-light);
+  padding: 11px 16px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 0 0 2px var(--void-black);
+  transition: color 0.1s, box-shadow 0.15s, background-color 0.1s, transform 0.05s;
+}
+.pixel-btn:hover {
+  color: var(--pale-gold);
+  background-color: var(--raised-stone);
+  border-color: var(--pale-gold) var(--gold-dim) var(--gold-dim) var(--pale-gold);
+  box-shadow: 0 0 0 2px var(--void-black), var(--glow-gold-strong);
+}
+.pixel-btn:active {
+  border-color: var(--stone-edge-dark) var(--stone-edge-light) var(--stone-edge-light)
+    var(--stone-edge-dark);
+  transform: translateY(2px);
+}
+.pixel-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--void-black), 0 0 0 5px var(--pale-gold);
+}
+.pixel-btn:disabled {
+  color: var(--ghost-grey);
+  cursor: not-allowed;
+  filter: grayscale(0.4) brightness(0.7);
+  box-shadow: 0 0 0 2px var(--void-black);
+}
+
+/* button variants */
+.pixel-btn--gold {
+  color: var(--void-black);
+  background-color: var(--aged-gold);
+  border-color: var(--pale-gold) var(--gold-dark) var(--gold-dark) var(--pale-gold);
+}
+.pixel-btn--gold:hover {
+  color: var(--void-black);
+  background-color: var(--pale-gold);
+}
+.pixel-btn--crimson {
+  color: var(--parchment);
+  background-color: var(--blood-crimson);
+  border-color: var(--crimson-bright) var(--crimson-dark) var(--crimson-dark) var(--crimson-bright);
+}
+.pixel-btn--crimson:hover {
+  color: #fff;
+  background-color: var(--crimson-bright);
+  border-color: #fff var(--crimson-dark) var(--crimson-dark) #fff;
+  box-shadow: 0 0 0 2px var(--void-black), var(--glow-crimson);
+}
+.pixel-btn--ghost {
+  color: var(--ghost-grey);
+  background-color: var(--purple-dark);
+  border-color: var(--purple-light) var(--stone-edge-dark) var(--stone-edge-dark) var(--purple-light);
+}
+.pixel-btn--sm {
+  font-size: 9px;
+  padding: 7px 10px;
+}
+.pixel-btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* ---- Ornate gold portrait frame -------------------------- */
+.pixel-frame {
+  position: relative;
+  display: inline-block;
+  background-color: var(--void-black);
+  padding: var(--px);
+  border-style: solid;
+  border-width: var(--px);
+  border-color: var(--pale-gold) var(--gold-dark) var(--gold-dark) var(--pale-gold);
+  box-shadow: 0 0 0 2px var(--void-black), 0 0 0 6px var(--aged-gold), 0 0 0 8px var(--void-black);
+}
+/* corner studs */
+.pixel-frame::before,
+.pixel-frame::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--pale-gold);
+  box-shadow: 0 0 0 2px var(--void-black);
+}
+.pixel-frame::before {
+  top: -4px;
+  left: -4px;
+}
+.pixel-frame::after {
+  bottom: -4px;
+  right: -4px;
+}
+.pixel-frame > img,
+.pixel-frame > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.pixel-frame--vacant {
+  border-color: var(--purple-light) var(--purple-dark) var(--purple-dark) var(--purple-light);
+  box-shadow: 0 0 0 2px var(--void-black), 0 0 0 6px var(--royal-purple), 0 0 0 8px var(--void-black);
+  filter: saturate(0.6);
+}
+.pixel-frame--vacant::before,
+.pixel-frame--vacant::after {
+  background: var(--ghost-grey);
+}
+
+/* ---- Gothic pointed-arch header -------------------------- */
+.arch-header {
+  position: relative;
+  background-color: var(--void-black);
+  color: var(--aged-gold);
+  font-family: var(--font-title);
+  text-align: center;
+  padding: 14px 20px 12px;
+  /* peaked "pointed arch" top, made of straight pixel-friendly edges */
+  clip-path: polygon(0 34%, 50% 0, 100% 34%, 100% 100%, 0 100%);
+}
+
+/* ---- Hanging banner / pennant ---------------------------- */
+.pennant {
+  /* notched downward point at the bottom — a hanging pennant */
+  clip-path: polygon(0 0, 100% 0, 100% 82%, 50% 100%, 0 82%);
+}
+
+/* ---- Hover torchlight helper ----------------------------- */
+.torch-hover {
+  transition: box-shadow 0.15s, filter 0.15s;
+}
+.torch-hover:hover {
+  box-shadow: 0 0 0 2px var(--void-black), var(--glow-gold-strong);
+}
+
+/* ---- Divider (rune line) --------------------------------- */
+.rune-divider {
+  height: var(--px);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--gold-dim) 0,
+    var(--gold-dim) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  border: 0;
+  margin: 12px 0;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   SHARED KEYFRAMES
+   ============================================================ */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px var(--void-black), 0 0 8px 1px rgba(201, 162, 39, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--void-black), 0 0 20px 4px rgba(232, 212, 139, 0.55);
+  }
+}
+@keyframes flicker {
+  0% {
+    opacity: 0.85;
+    transform: scaleY(1) translateY(0);
+  }
+  25% {
+    opacity: 1;
+    transform: scaleY(1.08) translateY(-1px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scaleY(0.94) translateY(1px);
+  }
+  75% {
+    opacity: 1;
+    transform: scaleY(1.05) translateY(0);
+  }
+  100% {
+    opacity: 0.88;
+    transform: scaleY(1) translateY(0);
+  }
+}
+@keyframes ember-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.5);
+  }
+}
+@keyframes seal-press {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.86) rotate(-4deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes excalibur-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(201, 162, 39, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(232, 212, 139, 0.9));
+  }
+}
+@keyframes panel-slide-in {
+  from {
+    transform: translateX(110%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,587 @@
+/* ============================================================
+   THE ROUND TABLE HUB — page-scoped styles (.hub-*)
+   Dark gothic pixel-art. Reuses theme tokens ONLY — no new colors.
+   Top-down view of a great round stone table in a torch-lit hall.
+   ============================================================ */
+
+/* ---- Page shell ----------------------------------------- */
+.hub {
+  position: relative;
+  min-height: 100%;
+  padding: 20px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  /* faint pool of torchlight bleeding from the top corners */
+  background-image:
+    radial-gradient(120% 60% at 0% 0%, rgba(217, 123, 41, 0.08), transparent 60%),
+    radial-gradient(120% 60% at 100% 0%, rgba(217, 123, 41, 0.08), transparent 60%);
+  animation: fade-in 0.25s ease;
+}
+
+/* Corner torches, fixed to the hall walls (the scroll region). */
+.hub-torch {
+  position: absolute;
+  top: 14px;
+  z-index: var(--z-torch);
+  filter: drop-shadow(0 0 14px rgba(217, 123, 41, 0.45));
+  pointer-events: none;
+}
+.hub-torch--left {
+  left: 20px;
+}
+.hub-torch--right {
+  right: 20px;
+}
+.hub-torch--bl {
+  top: auto;
+  bottom: 28px;
+  left: 20px;
+}
+.hub-torch--br {
+  top: auto;
+  bottom: 28px;
+  right: 20px;
+}
+
+/* ---- Hall banner header --------------------------------- */
+.hub-banner {
+  position: relative;
+  z-index: var(--z-content);
+  width: min(720px, 90%);
+  padding: 16px 28px 26px;
+  text-align: center;
+  background-color: var(--blood-crimson);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.4));
+  border-style: solid;
+  border-width: var(--px);
+  border-color: var(--crimson-bright) var(--crimson-dark) var(--crimson-dark) var(--crimson-bright);
+  box-shadow: 0 0 0 2px var(--void-black), 0 8px 0 0 rgba(0, 0, 0, 0.4);
+  /* hanging-pennant notch at the bottom (from .pennant) */
+  clip-path: polygon(0 0, 100% 0, 100% 84%, 50% 100%, 0 84%);
+}
+.hub-banner__crown {
+  color: var(--pale-gold);
+  filter: drop-shadow(0 2px 0 var(--void-black));
+  margin-bottom: 2px;
+}
+.hub-banner__title {
+  font-family: var(--font-title);
+  color: var(--pale-gold);
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: 1;
+  letter-spacing: 2px;
+  text-shadow: 3px 3px 0 var(--void-black), 0 0 14px rgba(232, 212, 139, 0.35);
+  margin: 4px 0 0;
+}
+
+/* ---- Council status strip ------------------------------- */
+.hub-status {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 22px;
+  padding: 10px 18px;
+  width: min(720px, 92%);
+}
+.hub-status__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-label);
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--parchment);
+}
+.hub-status__count {
+  color: var(--pale-gold);
+  font-size: 12px;
+}
+.hub-status__sep {
+  width: var(--px);
+  height: 20px;
+  background: var(--stone-edge-light);
+}
+
+/* ============================================================
+   THE ROUND TABLE (circular layout)
+   ============================================================ */
+.hub-tablewrap {
+  position: relative;
+  z-index: var(--z-content);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0 24px;
+}
+
+/* The square arena the seats orbit. Sized responsively but capped. */
+.hub-arena {
+  position: relative;
+  width: min(78vh, 740px, 84vw);
+  aspect-ratio: 1 / 1;
+}
+
+/* The stone disc itself, centered inside the arena. It is smaller than the
+   arena so seats can sit on/just outside its rim. */
+.hub-table {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 62%;
+  height: 62%;
+  border-radius: 50%;
+  /* carved stone body */
+  background:
+    radial-gradient(circle at 42% 34%, var(--raised-stone), var(--dungeon-stone) 62%, var(--void-black) 100%);
+  box-shadow:
+    0 0 0 var(--px) var(--stone-edge-dark),
+    inset 0 0 0 var(--px) var(--stone-edge-light),
+    inset 0 0 40px 6px rgba(0, 0, 0, 0.6),
+    0 14px 0 4px rgba(0, 0, 0, 0.45);
+  /* rises out of the floor like the table is being rebuilt, on every mount */
+  animation: hub-table-rise 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@keyframes hub-table-rise {
+  from {
+    transform: translate(-50%, -50%) scaleY(0.05);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Rune ring around the rim — chunky dashes of gold-dim, pixel feel. */
+.hub-table__runes {
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  border: var(--px) dashed var(--gold-dim);
+  opacity: 0.7;
+  /* fades in once the table has risen, then keeps its slow ceremonial rotation */
+  animation: hub-rune-appear 0.35s ease-out 0.28s both, hub-rune-spin 90s linear infinite;
+}
+@keyframes hub-rune-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes hub-rune-appear {
+  from { opacity: 0; }
+  to { opacity: 0.7; }
+}
+
+/* Faint gold inlay circle just inside the runes. */
+.hub-table__inlay {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  border: 2px solid var(--aged-gold);
+  opacity: 0.28;
+  box-shadow: inset 0 0 24px rgba(201, 162, 39, 0.15);
+  animation: hub-ring-pop 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) 0.38s both;
+}
+
+/* A second, inner hairline for depth. */
+.hub-table__inlay2 {
+  position: absolute;
+  inset: 24%;
+  border-radius: 50%;
+  border: 2px solid var(--gold-dim);
+  opacity: 0.35;
+  animation: hub-ring-pop 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) 0.48s both;
+}
+@keyframes hub-ring-pop {
+  from { transform: scale(0.4); }
+  to { transform: scale(1); }
+}
+
+/* ---- Center Excalibur emblem ---------------------------- */
+.hub-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  padding: 8px;
+  cursor: pointer;
+  z-index: 3;
+  animation: hub-center-pop 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) 0.58s both;
+}
+.hub-center svg {
+  filter: drop-shadow(0 0 4px rgba(201, 162, 39, 0.4));
+  transition: filter 0.2s, transform 0.1s;
+}
+.hub-center:hover svg {
+  filter: drop-shadow(0 0 10px rgba(232, 212, 139, 0.7));
+  transform: scale(1.06);
+}
+.hub-center:focus-visible {
+  outline: none;
+}
+.hub-center:focus-visible svg {
+  filter: drop-shadow(0 0 12px rgba(232, 212, 139, 0.95));
+}
+.hub-center__label {
+  font-family: var(--font-label);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@keyframes hub-center-pop {
+  from {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   SEATS
+   ============================================================ */
+.hub-seat {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 108px;
+  background: none;
+  border: 0;
+  padding: 6px;
+  cursor: pointer;
+  color: inherit;
+  z-index: 2;
+  transition: transform 0.08s;
+  /* converges from outside the page along its own angle on the rim, staggered
+     clockwise seat 1 -> 12 via --seat-order (set inline per seat, see index.jsx).
+     --seat-delay is also read by the occupied portrait's arrival below. */
+  --seat-delay: calc(0.6s + var(--seat-order) * 50ms);
+  animation: hub-seat-arrive 0.42s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation-delay: var(--seat-delay);
+}
+@keyframes hub-seat-arrive {
+  from {
+    transform: translate(calc(-50% + var(--arrive-x)), calc(-50% + var(--arrive-y)));
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+.hub-seat:focus-visible {
+  outline: none;
+}
+.hub-seat:focus-visible .hub-seat__body {
+  filter: drop-shadow(0 0 8px rgba(232, 212, 139, 0.9));
+}
+.hub-seat.is-selected {
+  z-index: 4;
+}
+
+/* wrapper that receives the drop-shadow glow (never clipped) */
+.hub-seat__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: filter 0.15s;
+}
+
+/* Twelve seats packed tightly around the rim have far less room per portrait
+   than the Editor/Village/detail-panel use it with — tighten the frame's own
+   glow rings (normally 2/6/8px) so neighboring portraits' halos don't touch
+   even at the smallest supported window (1024px wide). */
+.hub-seat__body .pixel-frame {
+  box-shadow: 0 0 0 1px var(--void-black), 0 0 0 3px var(--aged-gold), 0 0 0 4px var(--void-black);
+}
+.hub-seat__body .pixel-frame::before,
+.hub-seat__body .pixel-frame::after {
+  width: 4px;
+  height: 4px;
+}
+
+/* ---- Vacant chair sprite -------------------------------- */
+.hub-chair {
+  display: block;
+  image-rendering: pixelated;
+  transition: filter 0.15s;
+}
+.hub-seat--vacant:hover .hub-chair,
+.hub-seat--vacant.is-selected .hub-chair {
+  filter: drop-shadow(0 0 9px rgba(232, 212, 139, 0.85));
+}
+
+/* the floating "?" rune above a vacant chair */
+.hub-seat__qrune {
+  font-size: 26px;
+  margin-bottom: -6px;
+}
+
+/* ---- Occupied seat (Arthur) ----------------------------- */
+.hub-seat--occupied:hover .hub-seat__body,
+.hub-seat--occupied.is-selected .hub-seat__body {
+  filter: drop-shadow(0 0 12px rgba(232, 212, 139, 0.8));
+}
+/* the knight arrives a beat after their chair lands */
+.hub-seat--occupied .hub-seat__body {
+  animation: hub-portrait-pop 0.3s ease-out both;
+  animation-delay: calc(var(--seat-delay) + 0.47s);
+}
+@keyframes hub-portrait-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---- Nameplates ----------------------------------------- */
+.hub-nameplate {
+  /* full seat width (not shrink-to-fit) so long names never overflow into a
+     neighboring seat */
+  width: 100%;
+  margin-top: 3px;
+  text-align: center;
+  line-height: 1.15;
+}
+.hub-nameplate__name {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  color: var(--pale-gold);
+  text-shadow: 2px 2px 0 var(--void-black);
+  /* fixed single line — with 12 seats packed around the rim, a name that
+     wraps to a second line grows taller than its neighbors' fixed spacing
+     and collides with the next seat's portrait. Long names truncate with an
+     ellipsis; the full name is still in the title tooltip and aria-label. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hub-nameplate__name--vacant {
+  color: var(--ghost-grey);
+  font-size: 14px;
+  text-shadow: 1px 1px 0 var(--void-black);
+}
+
+/* Small inline active/inactive toggle right on Arthur's seat — a compact
+   crown icon, not a text pill, so it stays inside the seat's own footprint
+   and never reaches into a neighboring seat around the tightly-packed rim. */
+.hub-seat__toggle {
+  margin-top: 4px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--ghost-grey);
+  background-color: var(--dungeon-stone);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--stone-edge-light) var(--stone-edge-dark) var(--stone-edge-dark)
+    var(--stone-edge-light);
+  box-shadow: 0 0 0 1px var(--void-black);
+  cursor: pointer;
+  transition: color 0.15s, filter 0.15s;
+}
+.hub-seat__toggle.is-active {
+  color: var(--aged-gold);
+  border-color: var(--pale-gold) var(--gold-dim) var(--gold-dim) var(--pale-gold);
+  filter: drop-shadow(0 0 4px rgba(201, 162, 39, 0.6));
+}
+.hub-seat__toggle:hover {
+  color: var(--pale-gold);
+}
+.hub-seat__toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--void-black), 0 0 0 3px var(--pale-gold);
+}
+
+/* ============================================================
+   SEAT DETAIL PANEL (slide-in, right side)
+   ============================================================ */
+.hub-panel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-panel);
+  background: rgba(5, 4, 9, 0.55);
+  animation: fade-in 0.15s ease;
+}
+.hub-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(420px, 92vw);
+  z-index: calc(var(--z-panel) + 1);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+  background-color: var(--dungeon-stone);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.3));
+  border-left: var(--px) solid var(--stone-edge-light);
+  box-shadow: -2px 0 0 2px var(--void-black), -12px 0 30px rgba(0, 0, 0, 0.6);
+  animation: panel-slide-in 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.hub-panel__head {
+  position: relative;
+  padding: 22px 22px 16px;
+  text-align: center;
+  border-bottom: var(--px) solid var(--stone-edge-dark);
+  background-color: var(--void-black);
+  background-image: linear-gradient(180deg, rgba(201, 162, 39, 0.06), transparent);
+}
+.hub-panel__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-family: var(--font-label);
+  font-size: 12px;
+  line-height: 1;
+}
+.hub-panel__seatno {
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+}
+.hub-panel__portrait {
+  margin: 12px auto 10px;
+  display: flex;
+  justify-content: center;
+}
+.hub-panel__name {
+  font-family: var(--font-title);
+  font-size: 34px;
+  color: var(--pale-gold);
+  text-shadow: 2px 2px 0 var(--void-black);
+  margin: 2px 0 4px;
+}
+.hub-panel__role {
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--aged-gold);
+  line-height: 1.6;
+}
+
+.hub-panel__body {
+  flex: 1 1 auto;
+  padding: 18px 22px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.hub-panel__section-label {
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--ghost-grey);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.hub-panel__text {
+  font-family: var(--font-body);
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--parchment);
+}
+.hub-panel__statusrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+/* Vacant-mode call to action */
+.hub-panel__vacant-note {
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: 1.3;
+  color: var(--ghost-grey);
+  text-align: center;
+}
+
+.hub-panel__foot {
+  padding: 16px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: var(--px) solid var(--stone-edge-dark);
+}
+
+/* ============================================================
+   RESPONSIVE / GRID FALLBACK (narrow windows)
+   ============================================================ */
+.hub-grid {
+  position: relative;
+  z-index: var(--z-content);
+  width: 100%;
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  padding: 12px 4px 24px;
+}
+.hub-gridcard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.hub-gridcard:hover {
+  border-color: var(--pale-gold) var(--gold-dim) var(--gold-dim) var(--pale-gold);
+  box-shadow: 0 0 0 2px var(--void-black), var(--glow-gold-strong);
+}
+.hub-gridcard:focus-visible {
+  outline: none;
+  border-color: var(--pale-gold) var(--gold-dim) var(--gold-dim) var(--pale-gold);
+  box-shadow: 0 0 0 2px var(--void-black), 0 0 0 5px var(--pale-gold);
+}
+.hub-gridcard__seatno {
+  font-family: var(--font-label);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--gold-dim);
+}
+
+/* A CSS backstop for the JS width/height check: hide the circle / show grid.
+   The JS also swaps these, but the media query guarantees a sane reflow. */
+@media (max-width: 1023px), (max-height: 639px) {
+  .hub-tablewrap.hub--force-circle {
+    display: none;
+  }
+}
